@@ -45,7 +45,7 @@ internal object ImageHandler {
                 file.delete()
             }
         }
-        println("Spotify cache cleared.")
+        Logger.info("Spotify cache cleared.")
     }
     
     fun softClearCache() {
@@ -55,7 +55,7 @@ internal object ImageHandler {
     fun deleteOldestCachedFile() {
         val oldestFile = CACHE_DIR.listFiles()?.minByOrNull { it.lastModified() }
         if (oldestFile != null && oldestFile.delete()) {
-            println("Deleted oldest cached file: ${oldestFile.name}")
+            Logger.info("Deleted oldest cached file: ${oldestFile.name}")
         }
     }
 
@@ -91,55 +91,42 @@ internal object ImageHandler {
     fun downloadImage(url: String, cornerRadius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true): Identifier {
         try {
             if (url.startsWith("http")) {
-                
-                println("Downloading $url")
-    
+                Logger.info("Downloading $url")
                 CACHE[url]?.let {
-                    println("Found cached image for $url: $it")
+                    Logger.info("Found cached image for $url: $it")
                     return it
                 }
-    
                 val fileName = getFileNameFromUrl(url)
                 val cachedFile = File(CACHE_DIR, fileName)
-    
                 if (cachedFile.exists()) {
-                    println("Image found in cache: ${cachedFile.absolutePath}")
-                    
+                    Logger.info("Image found in cache: ${cachedFile.absolutePath}")
                     return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
                 }
-    
                 val imageUrl = URI(url).toURL()
                 imageUrl.openStream().use { input ->
                     Files.copy(input, cachedFile.toPath())
                 }
-                
                 if (CACHE_DIR.listFiles().size > 10) {
                     deleteOldestCachedFile()
                 }
-    
-                println("Downloaded image to $url")
-    
+                Logger.info("Downloaded image to $url")
                 if (isWebP(cachedFile)) {
-                    println("Converting to PNG...")
+                    Logger.info("Converting to PNG...")
                     val pngFile = convertWebPToPng(cachedFile)
                     return loadFromDisk(pngFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
                 }
-    
                 return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
             } else if (url.startsWith("data:image/png;base64,")) {
                 CACHE[url]?.let {
-                    println("Found cached image for BASE64 URL: $it")
+                    Logger.info("Found cached image for BASE64 URL: $it")
                     return it
                 }
-
                 val fileName = getFileNameFromUrl(url)
                 val cachedFile = File(CACHE_DIR, fileName)
-
                 if (cachedFile.exists()) {
-                    println("Image found in cache: ${cachedFile.absolutePath}")
+                    Logger.info("Image found in cache: ${cachedFile.absolutePath}")
                     return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
                 }
-
                 // Handle base64 encoded images
                 val base64Data = url.removePrefix("data:image/png;base64,")
                 val imageBytes = java.util.Base64.getDecoder().decode(base64Data)
@@ -161,19 +148,17 @@ internal object ImageHandler {
 
                 return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
             } else {
-                println("Unsupported URL format: $url")
-                CACHE[url] = EMPTY
+                Logger.warn("Unsupported URL format: $url")
                 return EMPTY
             }
         } catch (e: Exception) {
-            println("Failed to load image from $url: ${e.message}")
-            CACHE[url] = EMPTY
+            Logger.error("Failed to load image from $url: ${e.message}", e)
             return EMPTY
         }
     }
 
-    private fun loadFromDisk(file: File, url: String, cornerRadius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true): Identifier {
-        println("Loading cached image: ${file.absolutePath}")
+    private fun loadFromDisk(file: File, url: String, cornerRadius: Int, topLeft: Boolean, topRight: Boolean, bottomLeft: Boolean, bottomRight: Boolean): Identifier {
+        Logger.info("Loading cached image: ${file.absolutePath}")
         val bufferedImage = ImageIO.read(file) ?: return EMPTY
         val nativeImage = convertToNativeImage(bufferedImage)
 
@@ -185,7 +170,7 @@ internal object ImageHandler {
         val dynamicTexture = NativeImageBackedTexture({ id }, nativeImage)
         val textureLocation = id.toId()
         
-        println("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
+        Logger.info("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
 
         MC.textureManager.registerTexture(textureLocation, dynamicTexture)
         CACHE[url] = textureLocation
@@ -223,7 +208,7 @@ internal object ImageHandler {
                 "WEBP" in header
             }
         } catch (e: Exception) {
-            println("Error checking WebP format: ${e.message}")
+            Logger.error("Error checking WebP format: ${e.message}", e)
             false
         }
     }
@@ -237,13 +222,13 @@ internal object ImageHandler {
             .start()
 
         val exitCode = process.waitFor()
+        val errorMsg = process.inputStream.readAllBytes().toString(StandardCharsets.UTF_8)
         if (exitCode != 0) {
-            val errorMsg = process.inputStream.readAllBytes().toString(StandardCharsets.UTF_8)
-            println("Failed to convert WebP to PNG: $errorMsg")
+            Logger.error("Failed to convert WebP to PNG: $errorMsg")
             throw RuntimeException("Failed to convert WebP image to PNG. Exit code: $exitCode")
         }
 
-        println("Converted WebP to PNG: ${pngFile.absolutePath}")
+        Logger.info("Converted WebP to PNG: ${pngFile.absolutePath}")
         return pngFile
     }
 

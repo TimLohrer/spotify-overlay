@@ -1,0 +1,3 @@
+accessWidener	v1	named
+accessible field net/minecraft/client/gui/DrawContext vertexConsumers Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;
+

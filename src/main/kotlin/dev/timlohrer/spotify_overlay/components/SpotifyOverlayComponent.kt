@@ -4,15 +4,15 @@ import dev.timlohrer.spotify_overlay.SpotifyOverlay
 import dev.timlohrer.spotify_overlay.config.HUD_TYPE
 import dev.timlohrer.spotify_overlay.utils.ImageHandler
 import dev.timlohrer.spotify_overlay.utils.fillDouble
+import dev.timlohrer.spotify_overlay.utils.MarqueeManager
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.core.OwoUIDrawContext
 import io.wispforest.owo.ui.core.Sizing
-import me.x150.renderer.render.ExtendedDrawContext
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.text.Text
+import net.minecraft.util.Identifier
 import net.silkmc.silk.core.text.literalText
-import org.joml.Vector4f
 import java.awt.Color
 
 class SpotifyOverlayComponent(
@@ -47,14 +47,12 @@ class SpotifyOverlayComponent(
             val y = this.y.toDouble()
             
             if (SpotifyOverlay.getConfig().showBackground) {
-                ExtendedDrawContext.drawRoundedRect(
-                    context,
-                    x.toFloat(),
-                    y.toFloat(),
-                    width,
-                    height,
-                    Vector4f(SpotifyOverlay.getConfig().cornerRadius, SpotifyOverlay.getConfig().cornerRadius, SpotifyOverlay.getConfig().cornerRadius, SpotifyOverlay.getConfig().cornerRadius),
-                    me.x150.renderer.util.Color(0f, 0f, 0f, 150f) // Semi-transparent black background
+                context.fill(
+                    x.toInt(),
+                    y.toInt(),
+                    (x + width).toInt(),
+                    (y + height).toInt(),
+                    Color(0, 0, 0, 150).rgb //Semi-transparent black background
                 )
             }
             
@@ -202,18 +200,19 @@ class SpotifyOverlayComponent(
             
             val songName = SpotifyOverlay.currentMedia?.title ?: Text.translatable("spotify-overlay.no_song_playing").string
             val artistName = SpotifyOverlay.currentMedia?.artist ?: ""
+
+            val displayTitle = if (SpotifyOverlay.getConfig().enableMarquee) {
+                MarqueeManager.getMarqueeText("title", songName, maxTitleLength)
+            } else {
+                if (songName.length > maxTitleLength) {
+                    songName.take(maxTitleLength - 3) + "..."
+                } else {
+                    songName
+                }
+            }
+
             context.drawText(
-                literalText(songName.let {
-                    if (TEXT_RENDERER.getWidth(songName) > width - when(hudType) {
-                        HUD_TYPE.DEFAULT -> width - (coverSize + boxPadding * 3)
-                        HUD_TYPE.MEDIUM_COVER -> width - (coverSize + boxPadding * 3)
-                        HUD_TYPE.BIG_COVER -> width - boxPadding * 2
-                    } * scale && it.length >= maxTitleLength) {
-                        it.substring(0, maxTitleLength.toInt() - 1) + "..."
-                    } else { 
-                        it
-                    }
-                }),
+                literalText(displayTitle),
                 titleX,
                 titleY,
                 titleScale,
@@ -224,14 +223,22 @@ class SpotifyOverlayComponent(
                 } else {
                     Color.WHITE.rgb
                 }
-                    
             )
 
             if (artistName.isNotEmpty()) {
+                val displayArtist = if (SpotifyOverlay.getConfig().enableMarquee) {
+                    "by " + MarqueeManager.getMarqueeText("artist", artistName, maxArtistLength - 3) // -3 for "by "
+                } else {
+                    val maxLength = maxArtistLength - 3 // -3 for "by "
+                    if (artistName.length > maxLength) {
+                        "by " + artistName.take(maxLength - 3) + "..."
+                    } else {
+                        "by " + artistName
+                    }
+                }
+
                 context.drawText(
-                    literalText(artistName.let { 
-                        if (it.length > maxArtistLength) "by " + it.substring(0, maxArtistLength.toInt() - 1) + "..." else "by $it"
-                    }),
+                    literalText(displayArtist),
                     artistX,
                     artistY,
                     artistScale,

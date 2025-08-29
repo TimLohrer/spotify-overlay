@@ -1,0 +1,23 @@
+{
+  "text.autoconfig.spotify_overlay.title": "Spotify Overlay Einstellungen",
+  "text.autoconfig.spotify_overlay.option.renderOverlay": "Render Overlay",
+  "text.autoconfig.spotify_overlay.option.scale": "HUD Größe",
+  "text.autoconfig.spotify_overlay.option.hudType": "HUD Typ",
+  "text.autoconfig.spotify_overlay.option.cornerRadius": "Eck Radius",
+  "text.autoconfig.spotify_overlay.option.showBackground": "Hintergrund Anzeigen",
+  "text.autoconfig.spotify_overlay.option.color": "Overlay Farbe",
+  "text.autoconfig.spotify_overlay.option.sourceFilter": "Quellen Filter",
+  "text.autoconfig.spotify_overlay.option.enableMarquee":"Marquee Aktivieren",
+
+  "text.autoconfig.spotify_overlay.option.renderOverlay.@Tooltip": "Mache das Overlay an oder aus.",
+  "text.autoconfig.spotify_overlay.option.scale.@Tooltip": "Passe die größe des Overlays an.",
+  "text.autoconfig.spotify_overlay.option.hudType.@Tooltip": "Wähle das layout des Overlays aus. (Normal, Medium Cover, Großes Cover)",
+  "text.autoconfig.spotify_overlay.option.cornerRadius.@Tooltip": "Runde ecken radius für das Overlay.",
+  "text.autoconfig.spotify_overlay.option.showBackground.@Tooltip": "Aktiviere oder Deaktiviere den Overlay Hintergrund.",
+  "text.autoconfig.spotify_overlay.option.color.@Tooltip": "Haupt akzent farbe des Overlays.",
+  "text.autoconfig.spotify_overlay.option.sourceFilter.@Tooltip": "Erlaubte Quellen (ggf. Spotify, Apple Music).",
+  "text.autoconfig.spotify_overlay.option.enableMarquee.@Tooltip":"Aktiviere oder Deaktiviere das Scrollen bei Langen Texten.",
+
+  "spotify_overlay.cache_cleared": "Spotify cache geleert!",
+  "spotify-overlay.no_song_playing": "Kein Lied wird abgespielt"
+}

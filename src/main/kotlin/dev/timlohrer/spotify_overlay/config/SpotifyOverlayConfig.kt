@@ -4,7 +4,6 @@ import dev.timlohrer.spotify_overlay.SpotifyOverlay
 import me.shedaniel.autoconfig.ConfigData
 import me.shedaniel.autoconfig.annotation.Config
 import me.shedaniel.autoconfig.annotation.ConfigEntry
-import java.awt.Color
 
 @Config(name = SpotifyOverlay.MOD_ID)
 class SpotifyOverlayConfig : ConfigData {
@@ -23,4 +22,6 @@ class SpotifyOverlayConfig : ConfigData {
     var color = 0x00BB00
     @ConfigEntry.Gui.Tooltip
     var sourceFilter: String = "Spotify"
+    @ConfigEntry.Gui.Tooltip
+    var enableMarquee: Boolean = true
 }
