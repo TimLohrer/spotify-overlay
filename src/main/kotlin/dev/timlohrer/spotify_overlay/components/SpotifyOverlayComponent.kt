@@ -29,7 +29,7 @@ class SpotifyOverlayComponent(
             super.draw(context, mouseX, mouseY, partialTicks, delta)
             
             val TEXT_RENDERER = MinecraftClient.getInstance().textRenderer
-            val scale = SpotifyOverlay.getConfig().scale + 1.0f // yes, I am readjusting this here since ive built the whole ui in a different scale level :3 Is this clean? Nope! Do I care? Also nope!
+            val scale = SpotifyOverlay.getConfig().scale + 0.5f // yes, I am readjusting this here since ive built the whole ui in a different scale level :3 Is this clean? Nope! Do I care? Also nope!
             val hudType = SpotifyOverlay.getConfig().hudType
             
             val height = when (hudType) {

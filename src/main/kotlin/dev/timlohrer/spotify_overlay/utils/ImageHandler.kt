@@ -68,12 +68,12 @@ internal object ImageHandler {
         width: Int
     ) {
         //? if >= 1.21.5 {
-        /*val texture = MC.textureManager.getTexture(musicImage)?.glTexture ?: return
+        val texture = MC.textureManager.getTexture(musicImage)?.glTexture ?: return
         RenderSystem.setShaderTexture(0, texture)
-        *///?} elif >= 1.21 {
-        val texture = MC.textureManager.getTexture(musicImage) ?: return
+        //?} elif >= 1.21 {
+        /*val texture = MC.textureManager.getTexture(musicImage) ?: return
         RenderSystem.setShaderTexture(0, texture.glId)
-        //?}
+        *///?}
 
         //? if >= 1.21.4 {
         context.drawTexture(
@@ -185,13 +185,12 @@ internal object ImageHandler {
             applyRoundedCorners(nativeImage, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
         }
 
-        //? if >= 1.21 {
         val id = "spotify_cover_${UUID.randomUUID()}"
-        val dynamicTexture = NativeImageBackedTexture(nativeImage)
-        val textureLocation = id.toId()
-        //?} elif >= 1.21.4 {
-        /*val id = "spotify_cover_${UUID.randomUUID()}"
+        //? if >= 1.21.4 {
         val dynamicTexture = NativeImageBackedTexture({ id }, nativeImage)
+        val textureLocation = id.toId()
+        //?} elif >= 1.21 {
+        /*val dynamicTexture = NativeImageBackedTexture(nativeImage)
         val textureLocation = id.toId()
         *///?}
 

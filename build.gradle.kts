@@ -551,8 +551,7 @@ dependencies {
         "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion.min}")
     }
 
-    modImplementation("dev.timlohrer:local_media_listener:${property("deps.api.local_media_listener")}")
-    include("dev.timlohrer:local_media_listener:${property("deps.api.local_media_listener")}")
+    implementation("dev.timlohrer:local_media_listener:${property("deps.api.local_media_listener")}")
 
     apis.forEach { src->
         if(src.enabled) {
