@@ -67,9 +67,15 @@ internal object ImageHandler {
         height: Int,
         width: Int
     ) {
-        val texture = MC.textureManager.getTexture(musicImage)?.glTexture ?: return
+        //? if >= 1.21.5 {
+        /*val texture = MC.textureManager.getTexture(musicImage)?.glTexture ?: return
         RenderSystem.setShaderTexture(0, texture)
+        *///?} elif >= 1.21 {
+        val texture = MC.textureManager.getTexture(musicImage) ?: return
+        RenderSystem.setShaderTexture(0, texture.glId)
+        //?}
 
+        //? if >= 1.21.4 {
         context.drawTexture(
             { id -> RenderLayer.getGuiTextured(id) },
             musicImage,
@@ -82,6 +88,19 @@ internal object ImageHandler {
             width,
             height
         )
+        //?} elif >= 1.21 {
+        /*context.drawTexture(
+            musicImage,
+            x,
+            y,
+            0f,
+            0f,
+            width,
+            height,
+            width,
+            height
+        )
+        *///?}
     }
     
     fun getFileNameFromUrl(url: String): String {
@@ -165,11 +184,17 @@ internal object ImageHandler {
         if (cornerRadius > 0) {
             applyRoundedCorners(nativeImage, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
         }
-        
+
+        //? if >= 1.21 {
         val id = "spotify_cover_${UUID.randomUUID()}"
+        val dynamicTexture = NativeImageBackedTexture(nativeImage)
+        val textureLocation = id.toId()
+        //?} elif >= 1.21.4 {
+        /*val id = "spotify_cover_${UUID.randomUUID()}"
         val dynamicTexture = NativeImageBackedTexture({ id }, nativeImage)
         val textureLocation = id.toId()
-        
+        *///?}
+
         Logger.info("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
 
         MC.textureManager.registerTexture(textureLocation, dynamicTexture)
@@ -283,7 +308,12 @@ internal object ImageHandler {
                 // If alpha was set to 0, update the pixel color with the new alpha
                 if (alpha == 0) {
                     // Keep the RGB values, but set the alpha component to 0
+
+                    //? if >= 1.21.4 {
                     image.setColor(x, y, image.getColorArgb(x, y) and 0x00FFFFFF)
+                    //?} elif >= 1.21 {
+                    /*image.setColor(x, y, image.getColor(x, y) and 0x00FFFFFF)
+                    *///?}
                 }
             }
         }

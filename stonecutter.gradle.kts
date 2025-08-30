@@ -5,7 +5,7 @@ plugins {
     id("me.modmuss50.mod-publish-plugin") version "0.5.+" apply false
 }
 
-stonecutter active "1.21.5-fabric"
+stonecutter active "1.21.4-fabric"
 
 // Builds every version into `build/libs/{mod.version}/`
 stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
