@@ -19,5 +19,9 @@
   "text.autoconfig.spotify_overlay.option.enableMarquee.@Tooltip":"Enable or disable scrolling text for long titles.",
 
   "spotify_overlay.cache_cleared": "Spotify cache cleared!",
-  "spotify-overlay.no_song_playing": "No song playing"
+  "spotify-overlay.no_song_playing": "No song playing",
+
+  "key.spotify_overlay.back": "Back",
+  "key.spotify_overlay.play_pause": "Play / Pause",
+  "key.spotify_overlay.next": "Skip"
 }
