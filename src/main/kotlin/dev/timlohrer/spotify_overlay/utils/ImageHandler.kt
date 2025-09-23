@@ -1,8 +1,12 @@
 package dev.timlohrer.spotify_overlay.utils
 
+import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.systems.RenderSystem
+import com.mojang.blaze3d.textures.GpuTexture
+import com.mojang.blaze3d.textures.GpuTextureView
 import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gl.RenderPipelines
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.texture.NativeImage
@@ -67,17 +71,24 @@ internal object ImageHandler {
         height: Int,
         width: Int
     ) {
-        //? if >= 1.21.5 {
-        val texture = MC.textureManager.getTexture(musicImage)?.glTexture ?: return
+        //? if >= 1.21.7 {
+        val texture = MC.textureManager.getTexture(musicImage)?.glTextureView ?: return
         RenderSystem.setShaderTexture(0, texture)
-        //?} elif >= 1.21 {
+        //?} elif >= 1.21.5 {
+        /*val texture = MC.textureManager.getTexture(musicImage)?.glTexture ?: return
+        RenderSystem.setShaderTexture(0, texture)
+        *///?} elif >= 1.21 {
         /*val texture = MC.textureManager.getTexture(musicImage) ?: return
         RenderSystem.setShaderTexture(0, texture.glId)
         *///?}
 
         //? if >= 1.21.4 {
         context.drawTexture(
-            { id -> RenderLayer.getGuiTextured(id) },
+            //? if <= 1.21.5 {
+             /*{ id -> RenderLayer.getGuiTextured(id) },
+            *///?} else {
+            RenderPipeline.builder().build(),
+            //?}
             musicImage,
             x,
             y,
