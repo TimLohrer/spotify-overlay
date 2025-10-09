@@ -1,12 +1,12 @@
 package dev.timlohrer.spotify_overlay.utils
 
-import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.textures.GpuTexture
-import com.mojang.blaze3d.textures.GpuTextureView
 import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
 import net.minecraft.client.MinecraftClient
+//? if >= 1.21.5 {
+import com.mojang.blaze3d.pipeline.RenderPipeline
 import net.minecraft.client.gl.RenderPipelines
+//?}
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.texture.NativeImage
@@ -197,7 +197,7 @@ internal object ImageHandler {
         }
 
         val id = "spotify_cover_${UUID.randomUUID()}"
-        //? if >= 1.21.4 {
+        //? if >= 1.21.5 {
         val dynamicTexture = NativeImageBackedTexture({ id }, nativeImage)
         val textureLocation = id.toId()
         //?} elif >= 1.21 {
