@@ -31,6 +31,7 @@ extensions.configure<StonecutterSettings> {
         vers("1.21.5-fabric","1.21.5")
         vers("1.21.7-fabric","1.21.7")
         vers("1.21.8-fabric","1.21.8")
+        vers("1.21.10-fabric","1.21.10")
         vcsVersion="1.21.5-fabric"
     }
     create(rootProject)

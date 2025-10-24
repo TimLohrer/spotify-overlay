@@ -41,7 +41,7 @@ internal object ImageHandler {
             }
         }
     }
-    
+
     fun clearCache() {
         CACHE.clear()
         CACHE_DIR.listFiles()?.forEach { file ->
@@ -51,11 +51,11 @@ internal object ImageHandler {
         }
         Logger.info("Spotify cache cleared.")
     }
-    
+
     fun softClearCache() {
         CACHE.clear()
     }
-    
+
     fun deleteOldestCachedFile() {
         val oldestFile = CACHE_DIR.listFiles()?.minByOrNull { it.lastModified() }
         if (oldestFile != null && oldestFile.delete()) {
@@ -71,23 +71,12 @@ internal object ImageHandler {
         height: Int,
         width: Int
     ) {
-        //? if >= 1.21.7 {
-        val texture = MC.textureManager.getTexture(musicImage)?.glTextureView ?: return
-        RenderSystem.setShaderTexture(0, texture)
-        //?} elif >= 1.21.5 {
-        /*val texture = MC.textureManager.getTexture(musicImage)?.glTexture ?: return
-        RenderSystem.setShaderTexture(0, texture)
-        *///?} elif >= 1.21 {
-        /*val texture = MC.textureManager.getTexture(musicImage) ?: return
-        RenderSystem.setShaderTexture(0, texture.glId)
-        *///?}
-
         //? if >= 1.21.4 {
         context.drawTexture(
             //? if <= 1.21.5 {
-             /*{ id -> RenderLayer.getGuiTextured(id) },
-            *///?} else {
-            RenderPipeline.builder().build(),
+            /*{ id -> RenderLayer.getGuiTextured(id) },
+           *///?} elif > 1.21.5 {
+            RenderPipelines.GUI_TEXTURED,
             //?}
             musicImage,
             x,
@@ -113,7 +102,7 @@ internal object ImageHandler {
         )
         *///?}
     }
-    
+
     fun getFileNameFromUrl(url: String): String {
         return UUID.nameUUIDFromBytes(url.toByteArray()).toString() + ".png"
     }
@@ -197,12 +186,12 @@ internal object ImageHandler {
         }
 
         val id = "spotify_cover_${UUID.randomUUID()}"
-        //? if >= 1.21.5 {
-        val dynamicTexture = NativeImageBackedTexture({ id }, nativeImage)
         val textureLocation = id.toId()
+
+        //? if >= 1.21.5 {
+        val dynamicTexture = NativeImageBackedTexture({ textureLocation.toString() }, nativeImage)
         //?} elif >= 1.21 {
         /*val dynamicTexture = NativeImageBackedTexture(nativeImage)
-        val textureLocation = id.toId()
         *///?}
 
         Logger.info("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
@@ -226,7 +215,6 @@ internal object ImageHandler {
                 val g = (argb shr 8) and 0xFF
                 val b = argb and 0xFF
 
-                // Some NativeImage implementations use ABGR instead of ARGB
                 val abgr = (a shl 24) or (b shl 16) or (g shl 8) or r
                 nativeImage.setColor(x, y, abgr)
             }
@@ -271,7 +259,6 @@ internal object ImageHandler {
         val width = image.width
         val height = image.height
 
-        // Ensure radius does not exceed half of the smallest dimension
         var effectiveRadius = minOf(radius, width / 2, height / 2)
 
         if (image.width < 250) {
@@ -280,9 +267,8 @@ internal object ImageHandler {
 
         for (x in 0 until width) {
             for (y in 0 until height) {
-                var alpha = image.getOpacity(x, y).toInt() // Get current alpha value
+                var alpha = image.getOpacity(x, y).toInt()
 
-                // Check if the pixel is in one of the four corner regions
                 val isTopLeftCorner = x < effectiveRadius && y < effectiveRadius
                 val isTopRightCorner = x > width - effectiveRadius && y < effectiveRadius
                 val isBottomLeftCorner = x < effectiveRadius && y > height - effectiveRadius
@@ -291,7 +277,6 @@ internal object ImageHandler {
                 if (isTopLeftCorner && topLeft) {
                     val dx = effectiveRadius - x
                     val dy = effectiveRadius - y
-                    // If distance squared from corner center to pixel is greater than radius squared, it's outside the circle
                     if (dx * dx + dy * dy > effectiveRadius * effectiveRadius) {
                         alpha = 0
                     }
@@ -315,9 +300,7 @@ internal object ImageHandler {
                     }
                 }
 
-                // If alpha was set to 0, update the pixel color with the new alpha
                 if (alpha == 0) {
-                    // Keep the RGB values, but set the alpha component to 0
 
                     //? if >= 1.21.4 {
                     image.setColor(x, y, image.getColorArgb(x, y) and 0x00FFFFFF)

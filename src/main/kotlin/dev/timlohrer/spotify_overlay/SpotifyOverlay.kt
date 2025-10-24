@@ -24,7 +24,7 @@ import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
-import net.silkmc.silk.core.text.literal
+
 import org.lwjgl.glfw.GLFW
 
 object SpotifyOverlay : ModInitializer {
@@ -33,8 +33,11 @@ object SpotifyOverlay : ModInitializer {
 	private lateinit var backKeybinding: KeyBinding
 	private lateinit var playPauseKeybinding: KeyBinding
 	private lateinit var nextKeybinding: KeyBinding
-	
-	fun getConfig() = AutoConfig.getConfigHolder(SpotifyOverlayConfig::class.java).config
+    //? if >= 1.21.10 {
+    private var spotifyCategory = KeyBinding.Category.create(Identifier.of("category.spotify_overlay"))
+    //?}
+
+    fun getConfig() = AutoConfig.getConfigHolder(SpotifyOverlayConfig::class.java).config
 
 	var currentMedia: MediaInfo? = null
 	var lastDownloadedImageUrl: String? = null
@@ -62,12 +65,18 @@ object SpotifyOverlay : ModInitializer {
 			})
 		}
 
-		backKeybinding = KeyBindingHelper.registerKeyBinding(
+        //wer auch immer mojang in den kopf geschissen hat mit diesen kategorien ab 1.21.10 soll sich alt f4n
+
+        backKeybinding = KeyBindingHelper.registerKeyBinding(
 				KeyBinding(
 					"key.spotify_overlay.back",
 					InputUtil.Type.KEYSYM,
 					GLFW.GLFW_KEY_F7,
-					"category.spotify_overlay"
+                    //? if < 1.21.10 {
+					/*"category.spotify_overlay"
+                    *///?} elif >= 1.21.10 {
+                    spotifyCategory
+                    //?}
 				)
 		)
 		playPauseKeybinding = KeyBindingHelper.registerKeyBinding(
@@ -75,7 +84,11 @@ object SpotifyOverlay : ModInitializer {
 					"key.spotify_overlay.play_pause",
 					InputUtil.Type.KEYSYM,
 					GLFW.GLFW_KEY_F8,
-					"category.spotify_overlay"
+                    //? if < 1.21.10 {
+                    /*"category.spotify_overlay"
+                    *///?} elif >= 1.21.10 {
+                    spotifyCategory
+                    //?}
 				)
 		)
 		nextKeybinding = KeyBindingHelper.registerKeyBinding(
@@ -83,7 +96,11 @@ object SpotifyOverlay : ModInitializer {
 					"key.spotify_overlay.next",
 					InputUtil.Type.KEYSYM,
 					GLFW.GLFW_KEY_F9,
-					"category.spotify_overlay"
+                    //? if < 1.21.10 {
+					/*"category.spotify_overlay"
+                    *///?} elif >= 1.21.10 {
+                    spotifyCategory
+                    //?}
 				)
 		)
 
@@ -141,8 +158,8 @@ object SpotifyOverlay : ModInitializer {
 					if (currentMedia == null || mediaInfo.isPlaying) {
 						if (!knownSources.contains(mediaInfo.source)) {
 							knownSources.add(mediaInfo.source.trim())
-							MinecraftClient.getInstance().player?.sendMessage("§a§lSpotify§fOverlay §r§b» §rNew media source detected: ${if (mediaInfo.source.contains("Spotify")) "Spotify" else mediaInfo.source}.".literal, false)
-							Logger.info("New media source detected: "+mediaInfo.source)
+							MinecraftClient.getInstance().player?.sendMessage(Text.literal("§a§lSpotify§fOverlay §r§b» §rNew media source detected: ${if (mediaInfo.source.contains("Spotify")) "Spotify" else mediaInfo.source}.") , false)
+                             Logger.info("New media source detected: "+mediaInfo.source)
 						}
 
 						if (shouldShowMedia(mediaInfo.source)) {

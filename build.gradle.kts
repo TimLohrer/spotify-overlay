@@ -36,6 +36,7 @@ repositories {
     maven("https://maven.shedaniel.me/")
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://reposilite.timlohrer.dev/snapshots")
+    maven("https://maven.norisk.gg/repository/maven-releases")
 }
 
 fun bool(str: String) : Boolean {
@@ -245,7 +246,7 @@ val apis = arrayListOf(
     APISource(DepType.IMPL, APIModInfo("fabric-language-kotlin","fabric-language-kotlin"), "net.fabricmc:fabric-language-kotlin", optionalVersionProperty("deps.api.fabric_kotlin")) { src ->
         src.versionRange.isPresent
     },
-    APISource(DepType.IMPL, APIModInfo("silk-core","silk-core"), "net.silkmc:silk-core", optionalVersionProperty("deps.api.silk_core")) { src ->
+    APISource(DepType.IMPL, APIModInfo("silk-core","silk-core"), "net.silkmc:silk-core", optionalVersionProperty("deps.api.silk")) { src ->
         src.versionRange.isPresent
     },
     APISource(DepType.INCLUDE, APIModInfo("renderer-fabric","renderer-fabric"), "io.github.0x3c50.renderer:renderer-fabric", optionalVersionProperty("deps.api.renderer")) { src ->
@@ -259,7 +260,10 @@ val apis = arrayListOf(
     },
     APISource(DepType.API, APIModInfo("modmenu","modmenu"), "com.terraformersmc:modmenu", optionalVersionProperty("deps.api.modmenu")) { src ->
         src.versionRange.isPresent
-    }
+    },
+    APISource(DepType.API, APIModInfo(), "dev.timlohrer:local_media_listener", Optional.of(VersionRange("1.0.5-SNAPSHOT", ""))) { src ->
+        true
+    },
 )
 
 // Stores information about the mod itself.
@@ -550,8 +554,6 @@ dependencies {
     if(env.isNeo){
         "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion.min}")
     }
-
-    implementation("dev.timlohrer:local_media_listener:${property("deps.api.local_media_listener")}")
 
     apis.forEach { src->
         if(src.enabled) {

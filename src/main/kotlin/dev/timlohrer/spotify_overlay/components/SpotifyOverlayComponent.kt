@@ -14,7 +14,6 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
-import net.silkmc.silk.core.text.literalText
 import java.awt.Color
 
 class SpotifyOverlayComponent(
@@ -192,7 +191,7 @@ class SpotifyOverlayComponent(
             
             if (SpotifyOverlay.currentMedia?.isError() == true) {
                 context.drawText(
-                    literalText("Error: ${SpotifyOverlay.currentMedia?.error ?: "Unknown error"}"),
+                    Text.literal("Error: ${SpotifyOverlay.currentMedia?.error ?: "Unknown error"}"),
                     x.toFloat(),
                     y.toFloat(),
                     0.75f,
@@ -214,7 +213,7 @@ class SpotifyOverlayComponent(
             }
 
             context.drawText(
-                literalText(displayTitle),
+                Text.literal(displayTitle),
                 titleX,
                 titleY,
                 titleScale,
@@ -240,7 +239,7 @@ class SpotifyOverlayComponent(
                 }
 
                 context.drawText(
-                    literalText(displayArtist),
+                    Text.literal(displayArtist),
                     artistX,
                     artistY,
                     artistScale,
@@ -260,7 +259,7 @@ class SpotifyOverlayComponent(
                 timelineX2,
                 timelineY2,
                 0.0,
-                Color.GRAY.rgb // White color
+                Color.GRAY.rgb
             )
             *///?} else if >= 1.21.7 {
             context.fill(
@@ -268,11 +267,10 @@ class SpotifyOverlayComponent(
                 timelineY.toInt(),
                 timelineX2.toInt(),
                 timelineY2.toInt(),
-                Color.GRAY.rgb // White color
+                Color.GRAY.rgb
             )
             //?}
             
-            // Draw timeline progress
             val progress = {
                 val sec = SpotifyOverlay.currentMedia?.position
                 val totalTime = SpotifyOverlay.currentMedia?.duration
@@ -303,7 +301,6 @@ class SpotifyOverlayComponent(
             )
             //?}
 
-            // Draw small progress thumb
             val thumbX1 = timelineX + ((timelineX2 - timelineX) * progress()) - (thumbSize / 2) + (timelineThickness / 2)
             val thumbY1 = timelineY - (thumbSize / 2)
             val thumbX2 = timelineX + ((timelineX2 - timelineX) * progress()) + (thumbSize / 2) - (timelineThickness / 2)
@@ -342,18 +339,16 @@ class SpotifyOverlayComponent(
                 "00:00"
             }
             
-            // Draw current time
             context.drawText(
-                literalText(current),
+                Text.literal(current),
                 timelineX.toFloat(),
                 (timelineY + boxPadding).toFloat(),
                 0.5f * scale,
                 Color.WHITE.rgb
             )
 
-            // Draw total time
             context.drawText(
-                literalText(totalTimeText),
+                Text.literal(totalTimeText),
                 (timelineX2 - (TEXT_RENDERER.getWidth(totalTimeText) * scale) / 2).toFloat(), // Dikka das macht so null Sinn Junge es kracht komplett
                 (timelineY + boxPadding).toFloat(),
                 0.5f * scale,
