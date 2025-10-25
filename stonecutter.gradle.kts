@@ -6,24 +6,3 @@ plugins {
 }
 
 stonecutter active "1.21.5-fabric"
-
-// Builds every version into `build/libs/{mod.version}/`
-stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
-    group = "project"
-    ofTask("build")
-}
-
-stonecutter registerChiseled tasks.register("chiseledClean", stonecutter.chiseled) {
-    group = "project"
-    ofTask("clean")
-}
-
-stonecutter registerChiseled tasks.register("chiseledPublishToMavenLocal", stonecutter.chiseled) {
-    group = "project"
-    ofTask("publishToMavenLocal")
-}
-
-stonecutter registerChiseled tasks.register("chiseledRunClient", stonecutter.chiseled) {
-    group = "project"
-    ofTask("runClient")
-}

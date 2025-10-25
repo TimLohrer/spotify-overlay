@@ -1,5 +1,3 @@
-import dev.kikugie.stonecutter.settings.StonecutterSettings
-
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -17,10 +15,10 @@ pluginManagement {
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.6-beta.1"
+    id("dev.kikugie.stonecutter") version "0.7.10"
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
-extensions.configure<StonecutterSettings> {
+stonecutter {
     kotlinController = true
     centralScript = "build.gradle.kts"
 
