@@ -6,7 +6,7 @@ import net.minecraft.client.render.VertexConsumer
 import org.joml.Matrix4f
 
 //? if <= 1.21.5 {
-/*fun DrawContext.fillDouble(
+fun DrawContext.fillDouble(
     layer: RenderLayer,
     x1: Double,
     x2: Double,
@@ -38,4 +38,4 @@ import org.joml.Matrix4f
     vertexConsumer.vertex(matrix4f, y1Copy.toFloat(), y2Copy.toFloat(), z.toFloat()).color(color)
     vertexConsumer.vertex(matrix4f, y1Copy.toFloat(), x2Copy.toFloat(), z.toFloat()).color(color)
 }
-*///?}
+//?}

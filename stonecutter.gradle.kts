@@ -5,7 +5,7 @@ plugins {
     id("me.modmuss50.mod-publish-plugin") version "0.5.+" apply false
 }
 
-stonecutter active "1.21.10-fabric"
+stonecutter active "1.21.5-fabric"
 
 // Builds every version into `build/libs/{mod.version}/`
 stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chiseled) {
@@ -16,6 +16,11 @@ stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chisele
 stonecutter registerChiseled tasks.register("chiseledClean", stonecutter.chiseled) {
     group = "project"
     ofTask("clean")
+}
+
+stonecutter registerChiseled tasks.register("chiseledPublishToMavenLocal", stonecutter.chiseled) {
+    group = "project"
+    ofTask("publishToMavenLocal")
 }
 
 stonecutter registerChiseled tasks.register("chiseledRunClient", stonecutter.chiseled) {

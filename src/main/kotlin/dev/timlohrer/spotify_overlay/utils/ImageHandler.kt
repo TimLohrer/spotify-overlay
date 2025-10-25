@@ -2,6 +2,7 @@ package dev.timlohrer.spotify_overlay.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
 import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
+import dev.timlohrer.spotify_overlay.SpotifyOverlay
 import net.minecraft.client.MinecraftClient
 //? if >= 1.21.5 {
 import com.mojang.blaze3d.pipeline.RenderPipeline
@@ -71,13 +72,14 @@ internal object ImageHandler {
         height: Int,
         width: Int
     ) {
+        if (musicImage == EMPTY) return
         //? if >= 1.21.4 {
         context.drawTexture(
             //? if <= 1.21.5 {
-            /*{ id -> RenderLayer.getGuiTextured(id) },
-           *///?} elif > 1.21.5 {
-            RenderPipelines.GUI_TEXTURED,
-            //?}
+            { id -> RenderLayer.getGuiTextured(id) },
+           //?} elif > 1.21.5 {
+            /*RenderPipelines.GUI_TEXTURED,
+            *///?}
             musicImage,
             x,
             y,
@@ -109,6 +111,12 @@ internal object ImageHandler {
 
     fun downloadImage(url: String, cornerRadius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true): Identifier {
         try {
+            val source = SpotifyOverlay.currentMedia?.source
+            if (source != null && source.contains("Apple Music", ignoreCase = true)) {
+                Logger.info("Platform is Apple Music - skipping image render.")
+                return EMPTY
+            }
+
             if (url.startsWith("http")) {
                 Logger.info("Downloading $url")
                 CACHE[url]?.let {
@@ -193,7 +201,6 @@ internal object ImageHandler {
         //?} elif >= 1.21 {
         /*val dynamicTexture = NativeImageBackedTexture(nativeImage)
         *///?}
-
         Logger.info("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
 
         MC.textureManager.registerTexture(textureLocation, dynamicTexture)
