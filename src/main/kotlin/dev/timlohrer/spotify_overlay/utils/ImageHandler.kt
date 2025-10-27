@@ -76,10 +76,10 @@ internal object ImageHandler {
         //? if >= 1.21.4 {
         context.drawTexture(
             //? if <= 1.21.5 {
-            { id -> RenderLayer.getGuiTextured(id) },
-           //?} elif > 1.21.5 {
-            /*RenderPipelines.GUI_TEXTURED,
-            *///?}
+            /*{ id -> RenderLayer.getGuiTextured(id) },
+           *///?} elif > 1.21.5 {
+            RenderPipelines.GUI_TEXTURED,
+            //?}
             musicImage,
             x,
             y,
