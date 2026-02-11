@@ -10,10 +10,8 @@ import dev.timlohrer.spotify_overlay.utils.MarqueeManager
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.core.OwoUIDrawContext
 import io.wispforest.owo.ui.core.Sizing
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 import java.awt.Color
 
 class SpotifyOverlayComponent(
@@ -29,7 +27,7 @@ class SpotifyOverlayComponent(
         ) {
             super.draw(context, mouseX, mouseY, partialTicks, delta)
             
-            val TEXT_RENDERER = MinecraftClient.getInstance().textRenderer
+            val TEXT_RENDERER = Minecraft.getInstance().font
             val scale = SpotifyOverlay.getConfig().scale + 0.5f // yes, I am readjusting this here since ive built the whole ui in a different scale level :3 Is this clean? Nope! Do I care? Also nope!
             val hudType = SpotifyOverlay.getConfig().hudType
             
@@ -191,7 +189,7 @@ class SpotifyOverlayComponent(
             
             if (SpotifyOverlay.currentMedia?.isError() == true) {
                 context.drawText(
-                    Text.literal("Error: ${SpotifyOverlay.currentMedia?.error ?: "Unknown error"}"),
+                    Component.literal("Error: ${SpotifyOverlay.currentMedia?.error ?: "Unknown error"}"),
                     x.toFloat(),
                     y.toFloat(),
                     0.75f,
@@ -199,7 +197,7 @@ class SpotifyOverlayComponent(
                 )
             }
             
-            val songName = SpotifyOverlay.currentMedia?.title ?: Text.translatable("spotify-overlay.no_song_playing").string
+            val songName = SpotifyOverlay.currentMedia?.title ?: Component.translatable("spotify-overlay.no_song_playing").string
             val artistName = SpotifyOverlay.currentMedia?.artist ?: ""
 
             val displayTitle = if (SpotifyOverlay.getConfig().enableMarquee) {
@@ -213,7 +211,7 @@ class SpotifyOverlayComponent(
             }
 
             context.drawText(
-                Text.literal(displayTitle),
+                Component.literal(displayTitle),
                 titleX,
                 titleY,
                 titleScale,
@@ -239,7 +237,7 @@ class SpotifyOverlayComponent(
                 }
 
                 context.drawText(
-                    Text.literal(displayArtist),
+                    Component.literal(displayArtist),
                     artistX,
                     artistY,
                     artistScale,
@@ -342,7 +340,7 @@ class SpotifyOverlayComponent(
             }
             
             context.drawText(
-                Text.literal(current),
+                Component.literal(current),
                 timelineX.toFloat(),
                 (timelineY + boxPadding).toFloat(),
                 0.5f * scale,
@@ -350,8 +348,8 @@ class SpotifyOverlayComponent(
             )
 
             context.drawText(
-                Text.literal(totalTimeText),
-                (timelineX2 - (TEXT_RENDERER.getWidth(totalTimeText) * scale) / 2).toFloat(), // Dikka das macht so null Sinn Junge es kracht komplett
+                Component.literal(totalTimeText),
+                (timelineX2 - (TEXT_RENDERER.width(totalTimeText) * scale) / 2).toFloat(), // Dikka das macht so null Sinn Junge es kracht komplett
                 (timelineY + boxPadding).toFloat(),
                 0.5f * scale,
                 Color.WHITE.rgb

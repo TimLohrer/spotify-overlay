@@ -1,8 +1,5 @@
 package dev.timlohrer.spotify_overlay.utils
 
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.render.VertexConsumer
 import org.joml.Matrix4f
 
 //? if <= 1.21.5 {

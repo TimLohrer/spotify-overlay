@@ -3,16 +3,14 @@ package dev.timlohrer.spotify_overlay.utils
 import com.mojang.blaze3d.systems.RenderSystem
 import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
 import dev.timlohrer.spotify_overlay.SpotifyOverlay
-import net.minecraft.client.MinecraftClient
 //? if >= 1.21.5 {
 import com.mojang.blaze3d.pipeline.RenderPipeline
-import net.minecraft.client.gl.RenderPipelines
+import com.mojang.blaze3d.platform.NativeImage
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.renderer.texture.DynamicTexture
 //?}
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.texture.NativeImage
-import net.minecraft.client.texture.NativeImageBackedTexture
-import net.minecraft.util.Identifier
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.FileInputStream
@@ -29,9 +27,9 @@ import javax.imageio.ImageIO
  */
 
 internal object ImageHandler {
-    private val MC = MinecraftClient.getInstance()
-    private val CACHE = HashMap<String, Identifier>()
-    private val CACHE_DIR = File(MC.runDirectory, "spotify-overlay/cache")
+    private val MC = Minecraft.getInstance()
+    private val CACHE = HashMap<String, IdentifierAlias>()
+    private val CACHE_DIR = File(MC.gameDirectory, "spotify-overlay/cache")
     val EMPTY = "textures/spotify/empty.png".toId() // this doesnt even exist, but it is used as a placeholder
 
     init {
@@ -65,8 +63,8 @@ internal object ImageHandler {
     }
 
     fun drawImage(
-        context: DrawContext,
-        musicImage: Identifier,
+        context: GuiGraphics,
+        musicImage: IdentifierAlias,
         x: Int,
         y: Int,
         height: Int,
@@ -74,7 +72,7 @@ internal object ImageHandler {
     ) {
         if (musicImage == EMPTY) return
         //? if >= 1.21.4 {
-        context.drawTexture(
+        context.blit(
             //? if <= 1.21.5 {
             /*{ id -> RenderLayer.getGuiTextured(id) },
            *///?} elif > 1.21.5 {
@@ -109,7 +107,7 @@ internal object ImageHandler {
         return UUID.nameUUIDFromBytes(url.toByteArray()).toString() + ".png"
     }
 
-    fun downloadImage(url: String, cornerRadius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true): Identifier {
+    fun downloadImage(url: String, cornerRadius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true): IdentifierAlias {
         try {
             val source = SpotifyOverlay.currentMedia?.source
             if (source != null && source.contains("Apple Music", ignoreCase = true)) {
@@ -184,7 +182,7 @@ internal object ImageHandler {
         }
     }
 
-    private fun loadFromDisk(file: File, url: String, cornerRadius: Int, topLeft: Boolean, topRight: Boolean, bottomLeft: Boolean, bottomRight: Boolean): Identifier {
+    private fun loadFromDisk(file: File, url: String, cornerRadius: Int, topLeft: Boolean, topRight: Boolean, bottomLeft: Boolean, bottomRight: Boolean): IdentifierAlias {
         Logger.info("Loading cached image: ${file.absolutePath}")
         val bufferedImage = ImageIO.read(file) ?: return EMPTY
         val nativeImage = convertToNativeImage(bufferedImage)
@@ -197,13 +195,13 @@ internal object ImageHandler {
         val textureLocation = id.toId()
 
         //? if >= 1.21.5 {
-        val dynamicTexture = NativeImageBackedTexture({ textureLocation.toString() }, nativeImage)
+        val dynamicTexture = DynamicTexture({ textureLocation.toString() }, nativeImage)
         //?} elif >= 1.21 {
         /*val dynamicTexture = NativeImageBackedTexture(nativeImage)
         *///?}
         Logger.info("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
 
-        MC.textureManager.registerTexture(textureLocation, dynamicTexture)
+        MC.textureManager.register(textureLocation, dynamicTexture)
         CACHE[url] = textureLocation
         return textureLocation
     }
@@ -223,7 +221,7 @@ internal object ImageHandler {
                 val b = argb and 0xFF
 
                 val abgr = (a shl 24) or (b shl 16) or (g shl 8) or r
-                nativeImage.setColor(x, y, abgr)
+                nativeImage.setPixelABGR(x, y, abgr)
             }
         }
 
@@ -274,7 +272,7 @@ internal object ImageHandler {
 
         for (x in 0 until width) {
             for (y in 0 until height) {
-                var alpha = image.getOpacity(x, y).toInt()
+                var alpha = image.getLuminanceOrAlpha(x, y).toInt()
 
                 val isTopLeftCorner = x < effectiveRadius && y < effectiveRadius
                 val isTopRightCorner = x > width - effectiveRadius && y < effectiveRadius
@@ -310,7 +308,7 @@ internal object ImageHandler {
                 if (alpha == 0) {
 
                     //? if >= 1.21.4 {
-                    image.setColor(x, y, image.getColorArgb(x, y) and 0x00FFFFFF)
+                    image.setPixelABGR(x, y, image.getPixel(x, y) and 0x00FFFFFF)
                     //?} elif >= 1.21 {
                     /*image.setColor(x, y, image.getColor(x, y) and 0x00FFFFFF)
                     *///?}

@@ -1,10 +1,12 @@
 package dev.timlohrer.spotify_overlay
 
+import com.mojang.blaze3d.platform.InputConstants
 import dev.timlohrer.lml.LocalMediaListener
 import dev.timlohrer.lml.data.MediaInfo
 import dev.timlohrer.spotify_overlay.components.SpotifyOverlayComponent
 import dev.timlohrer.spotify_overlay.config.HUD_TYPE
 import dev.timlohrer.spotify_overlay.config.SpotifyOverlayConfig
+import dev.timlohrer.spotify_overlay.utils.IdentifierAlias
 import dev.timlohrer.spotify_overlay.utils.ImageHandler
 import dev.timlohrer.spotify_overlay.utils.Logger
 import io.wispforest.owo.ui.core.Positioning
@@ -19,29 +21,27 @@ import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.option.KeyBinding
-import net.minecraft.client.util.InputUtil
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
+import net.minecraft.client.KeyMapping
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 
 import org.lwjgl.glfw.GLFW
 
 object SpotifyOverlay : ModInitializer {
 	const val MOD_ID = "spotify_overlay"
 
-	private lateinit var backKeybinding: KeyBinding
-	private lateinit var playPauseKeybinding: KeyBinding
-	private lateinit var nextKeybinding: KeyBinding
+	private lateinit var backKeybinding: KeyMapping
+	private lateinit var playPauseKeybinding: KeyMapping
+	private lateinit var nextKeybinding: KeyMapping
     //? if >= 1.21.10 {
-    private var spotifyCategory = KeyBinding.Category.create(Identifier.of("category.spotify_overlay"))
+    private var spotifyCategory = KeyMapping.Category.register(IdentifierAlias.parse("category.spotify_overlay"))
     //?}
  
     fun getConfig() = AutoConfig.getConfigHolder(SpotifyOverlayConfig::class.java).config
 
 	var currentMedia: MediaInfo? = null
 	var lastDownloadedImageUrl: String? = null
-	var lastDownloadedImage: Identifier? = null
+	var lastDownloadedImage: IdentifierAlias? = null
 	var knownSources = mutableListOf<String>()
 	
 	// this is really hacky LOL
@@ -50,7 +50,7 @@ object SpotifyOverlay : ModInitializer {
 	internal var _cornerRadius: Float? = null
 	internal var _hudType: HUD_TYPE? = null
 
-	fun String.toId(): Identifier = Identifier.of(MOD_ID, this)
+	fun String.toId(): IdentifierAlias = IdentifierAlias.fromNamespaceAndPath(MOD_ID, this)
 
 	override fun onInitialize() {
 		AutoConfig.register(SpotifyOverlayConfig::class.java, ::GsonConfigSerializer)
@@ -68,9 +68,9 @@ object SpotifyOverlay : ModInitializer {
         //wer auch immer mojang in den kopf geschissen hat mit diesen kategorien ab 1.21.10 soll sich alt f4n
 
         backKeybinding = KeyBindingHelper.registerKeyBinding(
-				KeyBinding(
+			KeyMapping(
 					"key.spotify_overlay.back",
-					InputUtil.Type.KEYSYM,
+				InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F7,
                     //? if < 1.21.10 {
 					/*"category.spotify_overlay"
@@ -80,9 +80,9 @@ object SpotifyOverlay : ModInitializer {
 				)
 		)
 		playPauseKeybinding = KeyBindingHelper.registerKeyBinding(
-				KeyBinding(
+			KeyMapping(
 					"key.spotify_overlay.play_pause",
-					InputUtil.Type.KEYSYM,
+					InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F8,
                     //? if < 1.21.10 {
                     /*"category.spotify_overlay"
@@ -92,9 +92,9 @@ object SpotifyOverlay : ModInitializer {
 				)
 		)
 		nextKeybinding = KeyBindingHelper.registerKeyBinding(
-				KeyBinding(
+			KeyMapping(
 					"key.spotify_overlay.next",
-					InputUtil.Type.KEYSYM,
+				InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F9,
                     //? if < 1.21.10 {
 					/*"category.spotify_overlay"
@@ -106,13 +106,13 @@ object SpotifyOverlay : ModInitializer {
 
 		ClientTickEvents.END_CLIENT_TICK.register { client ->
 			if (!getConfig().renderOverlay || !LocalMediaListener.isRunning || currentMedia == null) return@register
-			while (backKeybinding.wasPressed()) {
+			while (backKeybinding.isDown()) {
 				LocalMediaListener.back(currentMedia!!.source)	
 			}
-			while (playPauseKeybinding.wasPressed()) {
+			while (playPauseKeybinding.isDown()) {
 				LocalMediaListener.playPause(currentMedia!!.source)
 			}
-			while (nextKeybinding.wasPressed()) {
+			while (nextKeybinding.isDown()) {
 				LocalMediaListener.next(currentMedia!!.source)
 			}
 		}
@@ -158,7 +158,7 @@ object SpotifyOverlay : ModInitializer {
 					if (currentMedia == null || mediaInfo.isPlaying) {
 						if (!knownSources.contains(mediaInfo.source)) {
 							knownSources.add(mediaInfo.source.trim())
-							MinecraftClient.getInstance().player?.sendMessage(Text.literal("§a§lSpotify§fOverlay §r§b» §rNew media source detected: ${if (mediaInfo.source.contains("Spotify")) "Spotify" else mediaInfo.source}.") , false)
+							Minecraft.getInstance().player?.displayClientMessage(Component.literal("§a§lSpotify§fOverlay §r§b» §rNew media source detected: ${if (mediaInfo.source.contains("Spotify")) "Spotify" else mediaInfo.source}.") , false)
                              Logger.info("New media source detected: "+mediaInfo.source)
 						}
 
@@ -173,7 +173,7 @@ object SpotifyOverlay : ModInitializer {
 			return
 		}
 		
-		if (MinecraftClient.getInstance().player?.world == null) return
+		if (Minecraft.getInstance().player?.level() == null) return
 		Hud.add("spotify_overlay".toId(), {
 			SpotifyOverlayComponent().apply {
 				positioning(Positioning.absolute(10, 10))
@@ -190,8 +190,9 @@ object SpotifyOverlay : ModInitializer {
 		} catch (e: Exception) {
 			Logger.error("Failed to properly close LocalMediaListener: "+e.message, e)
 		}
-		if (MinecraftClient.getInstance().player?.world == null) return
+		if (Minecraft.getInstance().player?.level() == null) return
 		Hud.remove("spotify_overlay".toId())
+		clearCache()
 		Logger.info("SpotifyOverlay listener shut down")
 	}
 
@@ -204,6 +205,6 @@ object SpotifyOverlay : ModInitializer {
 	
 	fun clearCache() {
 		ImageHandler.clearCache()
-		MinecraftClient.getInstance().player?.sendMessage(Text.translatable("spotify_overlay.cache_cleared"), true)
+		Minecraft.getInstance().player?.displayClientMessage(Component.translatable("spotify_overlay.cache_cleared"), true)
 	}
 }

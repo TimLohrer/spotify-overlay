@@ -9,8 +9,8 @@ pluginManagement {
         maven("https://maven.kikugie.dev/releases")
     }
     plugins {
-        kotlin("jvm") version "2.2.0"
-        id("dev.architectury.loom") version "1.10-SNAPSHOT"
+        kotlin("jvm") version "2.3.0"
+        id("dev.architectury.loom") version "1.13"
     }
 }
 
@@ -30,7 +30,8 @@ stonecutter {
         vers("1.21.7-fabric","1.21.7")
         vers("1.21.8-fabric","1.21.8")
         vers("1.21.10-fabric","1.21.10")
-        vcsVersion="1.21.5-fabric"
+        //vers("1.21.11-fabric","1.21.11")
+        vcsVersion="1.21.10-fabric"
     }
     create(rootProject)
 }

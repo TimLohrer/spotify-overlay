@@ -46,6 +46,7 @@ repositories {
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://reposilite.timlohrer.dev/snapshots")
     maven("https://maven.norisk.gg/repository/maven-releases")
+    maven ("https://jitpack.io")
 }
 
 fun bool(str: String) : Boolean {
@@ -273,7 +274,10 @@ val apis = arrayListOf(
     APISource(DepType.API, APIModInfo(), "dev.timlohrer:local_media_listener", Optional.of(VersionRange("1.0.6-SNAPSHOT", ""))) { src ->
         true
     },
-)
+    APISource(DepType.API, APIModInfo(), "com.github.kdl-org:kdl4j", Optional.of(VersionRange("1.0.1", ""))) { src ->
+        true
+    },
+    )
 
 // Stores information about the mod itself.
 class ModProperties {
@@ -551,7 +555,8 @@ val transitiveInclude: Configuration by configurations.creating {
 
 dependencies {
     minecraft("com.mojang:minecraft:${env.mcVersion.min}")
-    mappings(group = "net.fabricmc", name = "yarn", version = "${env.mcVersion.min}+build.${env.yarnBuildVersion}", classifier = "v2")
+    //mappings(group = "net.fabricmc", name = "yarn", version = "${env.mcVersion.min}+build.${env.yarnBuildVersion}", classifier = "v2")
+    mappings(loom.officialMojangMappings())
 
     if(env.isFabric) {
         modImplementation("net.fabricmc:fabric-loader:${env.fabricLoaderVersion.min}")
