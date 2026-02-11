@@ -270,7 +270,7 @@ val apis = arrayListOf(
     APISource(DepType.API, APIModInfo("modmenu","modmenu"), "com.terraformersmc:modmenu", optionalVersionProperty("deps.api.modmenu")) { src ->
         src.versionRange.isPresent
     },
-    APISource(DepType.API, APIModInfo(), "dev.timlohrer:local_media_listener", Optional.of(VersionRange("1.0.5-SNAPSHOT", ""))) { src ->
+    APISource(DepType.API, APIModInfo(), "dev.timlohrer:local_media_listener", Optional.of(VersionRange("1.0.6-SNAPSHOT", ""))) { src ->
         true
     },
 )
