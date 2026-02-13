@@ -4,13 +4,14 @@ import dev.timlohrer.spotify_overlay.SpotifyOverlay
 import dev.timlohrer.spotify_overlay.config.HUD_TYPE
 import dev.timlohrer.spotify_overlay.utils.ImageHandler
 //? if <= 1.21.5 {
- /*import dev.timlohrer.spotify_overlay.utils.fillDouble
-*///?}
+import dev.timlohrer.spotify_overlay.utils.fillDouble
+//?}
 import dev.timlohrer.spotify_overlay.utils.MarqueeManager
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.core.OwoUIDrawContext
 import io.wispforest.owo.ui.core.Sizing
 import net.minecraft.client.Minecraft
+import net.minecraft.client.renderer.RenderType
 import net.minecraft.network.chat.Component
 import java.awt.Color
 
@@ -250,8 +251,8 @@ class SpotifyOverlayComponent(
             
             // Draw timeline background
             //? if <= 1.21.5 {
-            /*context.fillDouble(
-                RenderLayer.getGui(),
+            context.fillDouble(
+                RenderType.gui(),
                 timelineX,
                 timelineY,
                 timelineX2,
@@ -259,15 +260,15 @@ class SpotifyOverlayComponent(
                 0.0,
                 Color.GRAY.rgb
             )
-            *///?} else if >= 1.21.7 {
-            context.fill(
+            //?} else if >= 1.21.7 {
+            /*context.fill(
                 timelineX.toInt(),
                 timelineY.toInt(),
                 timelineX2.toInt(),
                 timelineY2.toInt(),
                 Color.GRAY.rgb
             )
-            //?}
+            *///?}
             
             val progress = {
                 val sec = SpotifyOverlay.currentMedia?.position
@@ -281,8 +282,8 @@ class SpotifyOverlayComponent(
             }
             
             //? if <= 1.21.5 {
-             /*context.fillDouble(
-                RenderLayer.getGui(),
+             context.fillDouble(
+                 RenderType.gui(),
                 timelineX,
                 timelineY,
                 timelineX + (timelineX2 - timelineX) * progress(),
@@ -290,15 +291,15 @@ class SpotifyOverlayComponent(
                 0.0,
                 Color(SpotifyOverlay.getConfig().color).rgb
             )
-            *///?} else if >= 1.21.7 {
-            context.fill(
+            //?} else if >= 1.21.7 {
+            /*context.fill(
                 timelineX.toInt(),
                 timelineY.toInt(),
                 (timelineX + (timelineX2 - timelineX) * progress()).toInt(),
                 timelineY2.toInt(),
                 Color(SpotifyOverlay.getConfig().color).rgb
             )
-            //?}
+            *///?}
 
             val thumbX1 = timelineX + ((timelineX2 - timelineX) * progress()) - (thumbSize / 2) + (timelineThickness / 2)
             val thumbY1 = timelineY - (thumbSize / 2)
@@ -306,8 +307,8 @@ class SpotifyOverlayComponent(
             val thumbY2 = timelineY2 + (thumbSize / 2)
             
             //? if <= 1.21.5 {
-             /*context.fillDouble(
-                RenderLayer.getGui(),
+             context.fillDouble(
+                RenderType.gui(),
                 thumbX1,
                 thumbY1,
                 thumbX2,
@@ -315,15 +316,15 @@ class SpotifyOverlayComponent(
                 0.0,
                 Color(SpotifyOverlay.getConfig().color).rgb
             )
-            *///?} else if >= 1.21.7 {
-            context.fill(
+            //?} else if >= 1.21.7 {
+            /*context.fill(
                 thumbX1.toInt(),
                 thumbY1.toInt(),
                 thumbX2.toInt(),
                 thumbY2.toInt(),
                 Color(SpotifyOverlay.getConfig().color).rgb
             )
-            //?}
+            *///?}
   
             var totalTime = SpotifyOverlay.currentMedia?.duration ?: 0
             val position = SpotifyOverlay.currentMedia?.position?.toInt() ?: 0

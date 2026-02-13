@@ -3,14 +3,14 @@ package dev.timlohrer.spotify_overlay.utils
 import com.mojang.blaze3d.systems.RenderSystem
 import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
 import dev.timlohrer.spotify_overlay.SpotifyOverlay
-//? if >= 1.21.5 {
 import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.NativeImage
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.renderer.RenderPipelines
+//? if >= 1.21.5 {
+/*import net.minecraft.client.renderer.RenderPipelines
+*///?}
 import net.minecraft.client.renderer.texture.DynamicTexture
-//?}
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.FileInputStream
@@ -72,12 +72,12 @@ internal object ImageHandler {
     ) {
         if (musicImage == EMPTY) return
         //? if >= 1.21.4 {
-        context.blit(
+        /*context.blit(
             //? if <= 1.21.5 {
-            /*{ id -> RenderLayer.getGuiTextured(id) },
-           *///?} elif > 1.21.5 {
-            RenderPipelines.GUI_TEXTURED,
-            //?}
+            { id -> RenderLayer.getGuiTextured(id) },
+           //?} elif > 1.21.5 {
+            /^RenderPipelines.GUI_TEXTURED,
+            ^///?}
             musicImage,
             x,
             y,
@@ -88,8 +88,8 @@ internal object ImageHandler {
             width,
             height
         )
-        //?} elif >= 1.21 {
-        /*context.drawTexture(
+        *///?} elif >= 1.21 {
+        context.blit(
             musicImage,
             x,
             y,
@@ -100,7 +100,7 @@ internal object ImageHandler {
             width,
             height
         )
-        *///?}
+        //?}
     }
 
     fun getFileNameFromUrl(url: String): String {
@@ -141,7 +141,7 @@ internal object ImageHandler {
                     return loadFromDisk(pngFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
                 }
                 return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
-            } else if (url.startsWith("data:image/png;base64,")) {
+            } else if (url.startsWith("data:image/png;base64,") || url.startsWith("data:image/jpeg;base64,")) {
                 CACHE[url]?.let {
                     Logger.info("Found cached image for BASE64 URL: $it")
                     return it
@@ -153,7 +153,11 @@ internal object ImageHandler {
                     return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
                 }
                 // Handle base64 encoded images
-                val base64Data = url.removePrefix("data:image/png;base64,")
+                val base64Data = when {
+                    url.startsWith("data:image/png;base64,") -> url.removePrefix("data:image/png;base64,")
+                    url.startsWith("data:image/jpeg;base64,") -> url.removePrefix("data:image/jpeg;base64,")
+                    else -> return EMPTY
+                }
                 val imageBytes = java.util.Base64.getDecoder().decode(base64Data)
                 val bufferedImage = ImageIO.read(imageBytes.inputStream()) ?: return EMPTY
                 ImageIO.write(bufferedImage, "png", cachedFile)
@@ -195,10 +199,10 @@ internal object ImageHandler {
         val textureLocation = id.toId()
 
         //? if >= 1.21.5 {
-        val dynamicTexture = DynamicTexture({ textureLocation.toString() }, nativeImage)
-        //?} elif >= 1.21 {
-        /*val dynamicTexture = NativeImageBackedTexture(nativeImage)
-        *///?}
+        /*val dynamicTexture = DynamicTexture({ textureLocation.toString() }, nativeImage)
+        *///?} elif >= 1.21 {
+        val dynamicTexture = DynamicTexture(nativeImage)
+        //?}
         Logger.info("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
 
         MC.textureManager.register(textureLocation, dynamicTexture)
@@ -221,7 +225,11 @@ internal object ImageHandler {
                 val b = argb and 0xFF
 
                 val abgr = (a shl 24) or (b shl 16) or (g shl 8) or r
-                nativeImage.setPixelABGR(x, y, abgr)
+                //? if >= 1.21.4 {
+                /*nativeImage.setPixelABGR(x, y, abgr)
+                *///?} elif >= 1.21 {
+                nativeImage.setPixelRGBA(x, y, abgr)
+                //?}
             }
         }
 
@@ -308,10 +316,10 @@ internal object ImageHandler {
                 if (alpha == 0) {
 
                     //? if >= 1.21.4 {
-                    image.setPixelABGR(x, y, image.getPixel(x, y) and 0x00FFFFFF)
-                    //?} elif >= 1.21 {
-                    /*image.setColor(x, y, image.getColor(x, y) and 0x00FFFFFF)
-                    *///?}
+                    /*image.setPixelABGR(x, y, image.getPixel(x, y) and 0x00FFFFFF)
+                    *///?} elif >= 1.21 {
+                    image.setPixelRGBA(x, y, image.getPixelRGBA(x, y) and 0x00FFFFFF)
+                    //?}
                 }
             }
         }

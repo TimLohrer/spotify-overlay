@@ -37,6 +37,7 @@ repositories {
             includeGroupByRegex("dev\\.onyxstudios.*")
         }
     }
+    maven("https://maven.fabricmc.net/")
     maven("https://maven.neoforged.net/releases/")
     maven("https://maven.architectury.dev/")
     maven("https://modmaven.dev/")
@@ -46,7 +47,8 @@ repositories {
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://reposilite.timlohrer.dev/snapshots")
     maven("https://maven.norisk.gg/repository/maven-releases")
-    maven ("https://jitpack.io")
+    maven("https://jitpack.io")
+    maven("https://maven.bawnorton.com/releases")
 }
 
 fun bool(str: String) : Boolean {
@@ -521,7 +523,7 @@ stonecutter.const("forge",env.isForge)
 stonecutter.const("neoforge",env.isNeo)
 
 loom {
-    silentMojangMappingsLicense()
+    //silentMojangMappingsLicense()
 
     accessWidenerPath = rootProject.file("src/main/resources/spotify_overlay-${env.mcVersion.min}.accesswidener")
 
@@ -561,6 +563,11 @@ dependencies {
     if(env.isFabric) {
         modImplementation("net.fabricmc:fabric-loader:${env.fabricLoaderVersion.min}")
         modImplementation("net.fabricmc:fabric-language-kotlin:1.13.4+kotlin.2.2.0")
+        annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.3")
+        modImplementation("io.github.llamalad7:mixinextras-fabric:0.5.3")
+        if(env.atLeast("1.21.10")) {
+            modImplementation("net.fabricmc.fabric-api:fabric-api:${optionalVersionProperty("deps.api.fabric").orElse(VersionRange("", "")).min}")
+        }
     }
     if(env.isForge){
         "forge"("net.minecraftforge:forge:${env.forgeMavenVersion.min}")
@@ -591,6 +598,7 @@ dependencies {
             }
         }
     }
+
 
     // Process transitiveInclude dependencies
     transitiveInclude.resolvedConfiguration.resolvedArtifacts.forEach {

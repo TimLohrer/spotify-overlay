@@ -34,8 +34,8 @@ object SpotifyOverlay : ModInitializer {
 	private lateinit var playPauseKeybinding: KeyMapping
 	private lateinit var nextKeybinding: KeyMapping
     //? if >= 1.21.10 {
-    private var spotifyCategory = KeyMapping.Category.register(IdentifierAlias.parse("category.spotify_overlay"))
-    //?}
+    /*private var spotifyCategory = KeyMapping.Category.register(IdentifierAlias.parse("category.spotify_overlay"))
+    *///?}
  
     fun getConfig() = AutoConfig.getConfigHolder(SpotifyOverlayConfig::class.java).config
 
@@ -73,10 +73,10 @@ object SpotifyOverlay : ModInitializer {
 				InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F7,
                     //? if < 1.21.10 {
-					/*"category.spotify_overlay"
-                    *///?} elif >= 1.21.10 {
-                    spotifyCategory
-                    //?}
+					"category.spotify_overlay"
+                    //?} elif >= 1.21.10 {
+                    /*spotifyCategory
+                    *///?}
 				)
 		)
 		playPauseKeybinding = KeyBindingHelper.registerKeyBinding(
@@ -85,10 +85,10 @@ object SpotifyOverlay : ModInitializer {
 					InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F8,
                     //? if < 1.21.10 {
-                    /*"category.spotify_overlay"
-                    *///?} elif >= 1.21.10 {
-                    spotifyCategory
-                    //?}
+                    "category.spotify_overlay"
+                    //?} elif >= 1.21.10 {
+                    /*spotifyCategory
+                    *///?}
 				)
 		)
 		nextKeybinding = KeyBindingHelper.registerKeyBinding(
@@ -97,10 +97,10 @@ object SpotifyOverlay : ModInitializer {
 				InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F9,
                     //? if < 1.21.10 {
-					/*"category.spotify_overlay"
-                    *///?} elif >= 1.21.10 {
-                    spotifyCategory
-                    //?}
+					"category.spotify_overlay"
+                    //?} elif >= 1.21.10 {
+                    /*spotifyCategory
+                    *///?}
 				)
 		)
 

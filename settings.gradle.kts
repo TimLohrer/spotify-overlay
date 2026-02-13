@@ -7,10 +7,13 @@ pluginManagement {
         maven("https://repo.spongepowered.org/maven")
         maven("https://maven.kikugie.dev/snapshots")
         maven("https://maven.kikugie.dev/releases")
+        maven("https://maven.neoforged.net/releases/")
+        maven("https://modmaven.dev/")
     }
     plugins {
         kotlin("jvm") version "2.3.0"
         id("dev.architectury.loom") version "1.13"
+        id("me.modmuss50.mod-publish-plugin") version "0.8.0"
     }
 }
 
