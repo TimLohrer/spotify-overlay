@@ -1,11 +1,10 @@
 package dev.timlohrer.spotify_overlay.utils
-
-import com.mojang.blaze3d.vertex.VertexConsumer
+//? if <= 1.21.5 {
+/*import com.mojang.blaze3d.vertex.VertexConsumer
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.RenderType
 import org.joml.Matrix4f
 
-//? if <= 1.21.5 {
 fun GuiGraphics.fillDouble(
     layer: RenderType,
     x1: Double,
@@ -38,4 +37,4 @@ fun GuiGraphics.fillDouble(
     vertexConsumer.addVertex(matrix4f, y1Copy.toFloat(), y2Copy.toFloat(), z.toFloat()).setColor(color)
     vertexConsumer.addVertex(matrix4f, y1Copy.toFloat(), x2Copy.toFloat(), z.toFloat()).setColor(color)
 }
-//?}
+*///?}

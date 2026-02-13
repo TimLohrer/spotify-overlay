@@ -8,8 +8,8 @@ import com.mojang.blaze3d.platform.NativeImage
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 //? if >= 1.21.5 {
-/*import net.minecraft.client.renderer.RenderPipelines
-*///?}
+import net.minecraft.client.renderer.RenderPipelines
+//?}
 import net.minecraft.client.renderer.texture.DynamicTexture
 import java.awt.image.BufferedImage
 import java.io.File
@@ -72,24 +72,12 @@ internal object ImageHandler {
     ) {
         if (musicImage == EMPTY) return
         //? if >= 1.21.4 {
-        /*context.blit(
-            //? if <= 1.21.5 {
-            { id -> RenderLayer.getGuiTextured(id) },
-           //?} elif > 1.21.5 {
-            /^RenderPipelines.GUI_TEXTURED,
-            ^///?}
-            musicImage,
-            x,
-            y,
-            0f,
-            0f,
-            width,
-            height,
-            width,
-            height
-        )
-        *///?} elif >= 1.21 {
         context.blit(
+            //? if <= 1.21.5 {
+            /*{ id -> RenderLayer.getGuiTextured(id) },
+           *///?} elif > 1.21.5 {
+            RenderPipelines.GUI_TEXTURED,
+            //?}
             musicImage,
             x,
             y,
@@ -100,7 +88,19 @@ internal object ImageHandler {
             width,
             height
         )
-        //?}
+        //?} elif >= 1.21 {
+        /*context.blit(
+            musicImage,
+            x,
+            y,
+            0f,
+            0f,
+            width,
+            height,
+            width,
+            height
+        )
+        *///?}
     }
 
     fun getFileNameFromUrl(url: String): String {
@@ -199,10 +199,10 @@ internal object ImageHandler {
         val textureLocation = id.toId()
 
         //? if >= 1.21.5 {
-        /*val dynamicTexture = DynamicTexture({ textureLocation.toString() }, nativeImage)
-        *///?} elif >= 1.21 {
-        val dynamicTexture = DynamicTexture(nativeImage)
-        //?}
+        val dynamicTexture = DynamicTexture({ textureLocation.toString() }, nativeImage)
+        //?} elif >= 1.21 {
+        /*val dynamicTexture = DynamicTexture(nativeImage)
+        *///?}
         Logger.info("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
 
         MC.textureManager.register(textureLocation, dynamicTexture)
@@ -226,10 +226,10 @@ internal object ImageHandler {
 
                 val abgr = (a shl 24) or (b shl 16) or (g shl 8) or r
                 //? if >= 1.21.4 {
-                /*nativeImage.setPixelABGR(x, y, abgr)
-                *///?} elif >= 1.21 {
-                nativeImage.setPixelRGBA(x, y, abgr)
-                //?}
+                nativeImage.setPixelABGR(x, y, abgr)
+                //?} elif >= 1.21 {
+                /*nativeImage.setPixelRGBA(x, y, abgr)
+                *///?}
             }
         }
 
@@ -316,10 +316,10 @@ internal object ImageHandler {
                 if (alpha == 0) {
 
                     //? if >= 1.21.4 {
-                    /*image.setPixelABGR(x, y, image.getPixel(x, y) and 0x00FFFFFF)
-                    *///?} elif >= 1.21 {
-                    image.setPixelRGBA(x, y, image.getPixelRGBA(x, y) and 0x00FFFFFF)
-                    //?}
+                    image.setPixelABGR(x, y, image.getPixel(x, y) and 0x00FFFFFF)
+                    //?} elif >= 1.21 {
+                    /*image.setPixelRGBA(x, y, image.getPixelRGBA(x, y) and 0x00FFFFFF)
+                    *///?}
                 }
             }
         }

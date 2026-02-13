@@ -11,7 +11,8 @@ plugins {
     val kotlinVersion = "2.2.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
-    id("dev.architectury.loom")
+    //id("dev.architectury.loom")
+    id("fabric-loom") // Leaving this here if you want to swap loom.
     id("me.modmuss50.mod-publish-plugin")
 }
 
@@ -261,9 +262,9 @@ val apis = arrayListOf(
     APISource(DepType.IMPL, APIModInfo("silk-core","silk-core"), "net.silkmc:silk-core", optionalVersionProperty("deps.api.silk")) { src ->
         src.versionRange.isPresent
     },
-    APISource(DepType.INCLUDE, APIModInfo("renderer-fabric","renderer-fabric"), "io.github.0x3c50.renderer:renderer-fabric", optionalVersionProperty("deps.api.renderer")) { src ->
+    /*APISource(DepType.INCLUDE, APIModInfo("renderer-fabric","renderer-fabric"), "io.github.0x3c50.renderer:renderer-fabric", optionalVersionProperty("deps.api.renderer")) { src ->
         src.versionRange.isPresent
-    },
+    },*/
     APISource(DepType.IMPL, APIModInfo("owo-lib","owo-lib"), "io.wispforest:owo-lib", optionalVersionProperty("deps.api.owo_lib")) { src ->
         src.versionRange.isPresent
     },
@@ -527,16 +528,8 @@ loom {
 
     accessWidenerPath = rootProject.file("src/main/resources/spotify_overlay-${env.mcVersion.min}.accesswidener")
 
-    if (env.isForge) forge {
-        for (mixin in modMixins.getMixins(EnvType.FORGE)) {
-            mixinConfigs(
-                mixin
-            )
-        }
-    }
-
     decompilers {
-        get("vineflower").apply { // Adds names to lambdas - useful for mixins
+        get("vineflower").apply {
             options.put("mark-corresponding-synthetics", "1")
         }
     }

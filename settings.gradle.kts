@@ -12,7 +12,6 @@ pluginManagement {
     }
     plugins {
         kotlin("jvm") version "2.3.0"
-        id("dev.architectury.loom") version "1.13"
         id("me.modmuss50.mod-publish-plugin") version "0.8.0"
     }
 }
@@ -26,15 +25,15 @@ stonecutter {
     centralScript = "build.gradle.kts"
 
     shared {
-        vers("1.21-fabric","1.21")
-        vers("1.21.1-fabric","1.21.1")
-        vers("1.21.4-fabric","1.21.4")
-        vers("1.21.5-fabric","1.21.5")
-        vers("1.21.7-fabric","1.21.7")
-        vers("1.21.8-fabric","1.21.8")
-        vers("1.21.10-fabric","1.21.10")
-        //vers("1.21.11-fabric","1.21.11")
-        vcsVersion="1.21.10-fabric"
+        version("1.21-fabric","1.21")
+        version("1.21.1-fabric","1.21.1")
+        version("1.21.4-fabric","1.21.4")
+        version("1.21.5-fabric","1.21.5")
+        version("1.21.7-fabric","1.21.7")
+        version("1.21.8-fabric","1.21.8")
+        version("1.21.10-fabric","1.21.10")
+        version("1.21.11-fabric","1.21.11")
+        vcsVersion="1.21.11-fabric"
     }
     create(rootProject)
 }

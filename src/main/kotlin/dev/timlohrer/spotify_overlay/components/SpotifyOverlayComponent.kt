@@ -3,15 +3,20 @@ package dev.timlohrer.spotify_overlay.components
 import dev.timlohrer.spotify_overlay.SpotifyOverlay
 import dev.timlohrer.spotify_overlay.config.HUD_TYPE
 import dev.timlohrer.spotify_overlay.utils.ImageHandler
+import dev.timlohrer.spotify_overlay.utils.Logger
 //? if <= 1.21.5 {
-import dev.timlohrer.spotify_overlay.utils.fillDouble
-//?}
+/*import dev.timlohrer.spotify_overlay.utils.fillDouble
+import net.minecraft.client.renderer.RenderType
+*///?}
 import dev.timlohrer.spotify_overlay.utils.MarqueeManager
 import io.wispforest.owo.ui.container.FlowLayout
-import io.wispforest.owo.ui.core.OwoUIDrawContext
+//? if < 1.21.11 {
+/*import io.wispforest.owo.ui.core.OwoUIDrawContext
+*///?} else if >= 1.21.11 {
+import io.wispforest.owo.ui.core.OwoUIGraphics as OwoUIDrawContext
+//?}
 import io.wispforest.owo.ui.core.Sizing
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.RenderType
 import net.minecraft.network.chat.Component
 import java.awt.Color
 
@@ -251,7 +256,7 @@ class SpotifyOverlayComponent(
             
             // Draw timeline background
             //? if <= 1.21.5 {
-            context.fillDouble(
+            /*context.fillDouble(
                 RenderType.gui(),
                 timelineX,
                 timelineY,
@@ -260,29 +265,28 @@ class SpotifyOverlayComponent(
                 0.0,
                 Color.GRAY.rgb
             )
-            //?} else if >= 1.21.7 {
-            /*context.fill(
+            *///?} else if >= 1.21.7 {
+            context.fill(
                 timelineX.toInt(),
                 timelineY.toInt(),
                 timelineX2.toInt(),
                 timelineY2.toInt(),
                 Color.GRAY.rgb
             )
-            *///?}
+            //?}
             
             val progress = {
-                val sec = SpotifyOverlay.currentMedia?.position
-                var totalTime = SpotifyOverlay.currentMedia?.duration
-                if (sec != null && totalTime != null) {
-                    totalTime /= 1000
-                    (sec / totalTime.toDouble())
+                val positionSec = SpotifyOverlay.currentMedia?.position
+                val durationSec = SpotifyOverlay.currentMedia?.duration
+                if (positionSec != null && durationSec != null && durationSec > 0) {
+                    (positionSec / durationSec.toDouble()).coerceIn(0.0, 1.0)
                 } else {
                     0.0
                 }
             }
             
             //? if <= 1.21.5 {
-             context.fillDouble(
+             /*context.fillDouble(
                  RenderType.gui(),
                 timelineX,
                 timelineY,
@@ -291,15 +295,15 @@ class SpotifyOverlayComponent(
                 0.0,
                 Color(SpotifyOverlay.getConfig().color).rgb
             )
-            //?} else if >= 1.21.7 {
-            /*context.fill(
+            *///?} else if >= 1.21.7 {
+            context.fill(
                 timelineX.toInt(),
                 timelineY.toInt(),
                 (timelineX + (timelineX2 - timelineX) * progress()).toInt(),
                 timelineY2.toInt(),
                 Color(SpotifyOverlay.getConfig().color).rgb
             )
-            *///?}
+            //?}
 
             val thumbX1 = timelineX + ((timelineX2 - timelineX) * progress()) - (thumbSize / 2) + (timelineThickness / 2)
             val thumbY1 = timelineY - (thumbSize / 2)
@@ -307,7 +311,7 @@ class SpotifyOverlayComponent(
             val thumbY2 = timelineY2 + (thumbSize / 2)
             
             //? if <= 1.21.5 {
-             context.fillDouble(
+             /*context.fillDouble(
                 RenderType.gui(),
                 thumbX1,
                 thumbY1,
@@ -316,32 +320,39 @@ class SpotifyOverlayComponent(
                 0.0,
                 Color(SpotifyOverlay.getConfig().color).rgb
             )
-            //?} else if >= 1.21.7 {
-            /*context.fill(
+            *///?} else if >= 1.21.7 {
+            context.fill(
                 thumbX1.toInt(),
                 thumbY1.toInt(),
                 thumbX2.toInt(),
                 thumbY2.toInt(),
                 Color(SpotifyOverlay.getConfig().color).rgb
             )
-            *///?}
+            //?}
   
-            var totalTime = SpotifyOverlay.currentMedia?.duration ?: 0
-            val position = SpotifyOverlay.currentMedia?.position?.toInt() ?: 0
-            val totalTimeText = if (totalTime > 0) {
-                totalTime /= 1000
-                String.format("%02d:%02d", totalTime / 60, totalTime % 60)
-            } else {
-                "00:00"
+            val durationSec = SpotifyOverlay.currentMedia?.duration ?: 0
+            val positionSec = SpotifyOverlay.currentMedia?.position ?: 0.0
+
+            if (durationSec == 0 && SpotifyOverlay.currentMedia != null) {
+                Logger.warn("Duration is 0 or null for media: ${SpotifyOverlay.currentMedia?.title}")
             }
-            val current = if (position > 0) {
-                String.format("%02d:%02d", position / 60, position % 60)
+
+            val positionSecInt = positionSec.toInt()
+
+            val totalTimeText = if (durationSec > 0) {
+                String.format("%d:%02d", durationSec / 60, durationSec % 60)
             } else {
-                "00:00"
+                "0:00"
+            }
+
+            val currentTimeText = if (positionSecInt > 0) {
+                String.format("%d:%02d", positionSecInt / 60, positionSecInt % 60)
+            } else {
+                "0:00"
             }
             
             context.drawText(
-                Component.literal(current),
+                Component.literal(currentTimeText),
                 timelineX.toFloat(),
                 (timelineY + boxPadding).toFloat(),
                 0.5f * scale,
@@ -350,7 +361,7 @@ class SpotifyOverlayComponent(
 
             context.drawText(
                 Component.literal(totalTimeText),
-                (timelineX2 - (TEXT_RENDERER.width(totalTimeText) * scale) / 2).toFloat(), // Dikka das macht so null Sinn Junge es kracht komplett
+                (timelineX2 - (TEXT_RENDERER.width(totalTimeText) * 0.5f * scale)).toFloat(),
                 (timelineY + boxPadding).toFloat(),
                 0.5f * scale,
                 Color.WHITE.rgb
