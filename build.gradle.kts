@@ -38,6 +38,10 @@ repositories {
             includeGroupByRegex("dev\\.onyxstudios.*")
         }
     }
+    maven {
+        name = "pauli.fyiReleases"
+        url = uri("https://repo.pauli.fyi/releases")
+    }
     maven("https://maven.fabricmc.net/")
     maven("https://maven.neoforged.net/releases/")
     maven("https://maven.architectury.dev/")
