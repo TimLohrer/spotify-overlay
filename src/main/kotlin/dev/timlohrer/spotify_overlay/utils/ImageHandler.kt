@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 //? if >= 1.21.5 {
 import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.client.renderer.entity.layers.RenderLayer
 //?}
 import net.minecraft.client.renderer.texture.DynamicTexture
 import java.awt.image.BufferedImage
