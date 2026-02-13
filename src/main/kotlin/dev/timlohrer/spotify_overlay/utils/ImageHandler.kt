@@ -3,13 +3,14 @@ package dev.timlohrer.spotify_overlay.utils
 import com.mojang.blaze3d.systems.RenderSystem
 import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
 import dev.timlohrer.spotify_overlay.SpotifyOverlay
-import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.NativeImage
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
+//? if <= 1.21.5 {
+/*import net.minecraft.client.renderer.RenderType
+*///?}
 //? if >= 1.21.5 {
 import net.minecraft.client.renderer.RenderPipelines
-import net.minecraft.client.renderer.entity.layers.RenderLayer
 //?}
 import net.minecraft.client.renderer.texture.DynamicTexture
 import java.awt.image.BufferedImage
@@ -75,7 +76,7 @@ internal object ImageHandler {
         //? if >= 1.21.4 {
         context.blit(
             //? if <= 1.21.5 {
-            /*{ id -> RenderLayer.getGuiTextured(id) },
+            /*{ id -> RenderType.guiTextured(id) },
            *///?} elif > 1.21.5 {
             RenderPipelines.GUI_TEXTURED,
             //?}
