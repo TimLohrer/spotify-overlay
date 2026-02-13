@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants
 import dev.timlohrer.lml.LocalMediaListener
 import dev.timlohrer.lml.data.MediaInfo
 import dev.timlohrer.spotify_overlay.components.SpotifyOverlayComponent
+import dev.timlohrer.spotify_overlay.config.ConfigManager
 import dev.timlohrer.spotify_overlay.config.HUD_TYPE
 import dev.timlohrer.spotify_overlay.config.SpotifyOverlayConfig
 import dev.timlohrer.spotify_overlay.utils.IdentifierAlias
@@ -39,6 +40,8 @@ object SpotifyOverlay : ModInitializer {
  
     fun getConfig() = AutoConfig.getConfigHolder(SpotifyOverlayConfig::class.java).config
 
+	fun getActiveSettings() = ConfigManager.getActiveSettings()
+
 	var currentMedia: MediaInfo? = null
 	var lastDownloadedImageUrl: String? = null
 	var lastDownloadedImage: IdentifierAlias? = null
@@ -56,11 +59,12 @@ object SpotifyOverlay : ModInitializer {
 		AutoConfig.register(SpotifyOverlayConfig::class.java, ::GsonConfigSerializer)
 
 		ServerPlayConnectionEvents.JOIN.register { handler, sender, client ->
-			if (!getConfig().renderOverlay) return@register
+			if (!getActiveSettings().renderOverlay) return@register
 			initializeListener()
+			val settings = getActiveSettings()
 			Hud.add("spotify_overlay".toId(), {
 				SpotifyOverlayComponent().apply {
-					positioning(Positioning.absolute(10, 10))
+					positioning(Positioning.absolute(settings.positionX, settings.positionY))
 				}
 			})
 		}
@@ -105,7 +109,7 @@ object SpotifyOverlay : ModInitializer {
 		)
 
 		ClientTickEvents.END_CLIENT_TICK.register { client ->
-			if (!getConfig().renderOverlay || !LocalMediaListener.isRunning || currentMedia == null) return@register
+			if (!getActiveSettings().renderOverlay || !LocalMediaListener.isRunning || currentMedia == null) return@register
 			while (backKeybinding.isDown()) {
 				LocalMediaListener.back(currentMedia!!.source)	
 			}
@@ -120,8 +124,9 @@ object SpotifyOverlay : ModInitializer {
 		CoroutineScope(Dispatchers.IO).launch {
 			while (true) {
 				if (getConfig() != null) {
-					if (_shouldRender != getConfig().renderOverlay) {
-						_shouldRender = getConfig().renderOverlay
+					val settings = getActiveSettings()
+					if (_shouldRender != settings.renderOverlay) {
+						_shouldRender = settings.renderOverlay
 						// If the render setting changes, initialize or uninitialize the listener
 						if (_shouldRender == true) {
 							initializeListener()
@@ -129,16 +134,16 @@ object SpotifyOverlay : ModInitializer {
 							uninitializeListener()
 						}
 					}
-					if (_sourceFilter != getConfig().sourceFilter) {
-						_sourceFilter = getConfig().sourceFilter
+					if (_sourceFilter != settings.sourceFilter) {
+						_sourceFilter = settings.sourceFilter
 						// Reset current media if the source filter changes
 						if (currentMedia != null &&  !shouldShowMedia(currentMedia!!.source)) {
 							currentMedia = null
 						}
 					}
-					if (_cornerRadius != getConfig().cornerRadius || _hudType != getConfig().hudType) {
-						_cornerRadius = getConfig().cornerRadius
-						_hudType = getConfig().hudType
+					if (_cornerRadius != settings.cornerRadius || _hudType != settings.hudType) {
+						_cornerRadius = settings.cornerRadius
+						_hudType = settings.hudType
 						// Update corner radius in the overlay component
 						ImageHandler.softClearCache()
 						lastDownloadedImageUrl = null
@@ -174,9 +179,10 @@ object SpotifyOverlay : ModInitializer {
 		}
 		
 		if (Minecraft.getInstance().player?.level() == null) return
+		val settings = getActiveSettings()
 		Hud.add("spotify_overlay".toId(), {
 			SpotifyOverlayComponent().apply {
-				positioning(Positioning.absolute(10, 10))
+				positioning(Positioning.absolute(settings.positionX, settings.positionY))
 			}
 		})
 	}
@@ -197,7 +203,7 @@ object SpotifyOverlay : ModInitializer {
 	}
 
 	fun shouldShowMedia(source: String): Boolean {
-		val sourceFilter = getConfig().sourceFilter
+		val sourceFilter = getActiveSettings().sourceFilter
 		if (sourceFilter.isEmpty()) return true
 		val splitFilter = sourceFilter.split(",").map { it.trim() }
 		return splitFilter.any { source.contains(it, ignoreCase = true) }

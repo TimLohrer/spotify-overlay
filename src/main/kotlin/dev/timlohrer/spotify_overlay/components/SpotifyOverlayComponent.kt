@@ -34,9 +34,10 @@ class SpotifyOverlayComponent(
             super.draw(context, mouseX, mouseY, partialTicks, delta)
             
             val TEXT_RENDERER = Minecraft.getInstance().font
-            val scale = SpotifyOverlay.getConfig().scale + 0.5f // yes, I am readjusting this here since ive built the whole ui in a different scale level :3 Is this clean? Nope! Do I care? Also nope!
-            val hudType = SpotifyOverlay.getConfig().hudType
-            
+            val settings = SpotifyOverlay.getActiveSettings()
+            val scale = settings.scale + 0.5f // yes, I am readjusting this here since ive built the whole ui in a different scale level :3 Is this clean? Nope! Do I care? Also nope!
+            val hudType = settings.hudType
+
             val height = when (hudType) {
                 HUD_TYPE.DEFAULT -> 35
                 HUD_TYPE.MEDIUM_COVER -> 35
@@ -51,7 +52,7 @@ class SpotifyOverlayComponent(
             val x = this.x.toDouble()
             val y = this.y.toDouble()
             
-            if (SpotifyOverlay.getConfig().showBackground) {
+            if (settings.showBackground) {
                 context.fill(
                     x.toInt(),
                     y.toInt(),
@@ -166,7 +167,7 @@ class SpotifyOverlayComponent(
                 val img = if (SpotifyOverlay.lastDownloadedImageUrl == SpotifyOverlay.currentMedia?.imageUrl!!) {
                     SpotifyOverlay.lastDownloadedImage
                 } else {
-                    val radius = SpotifyOverlay.getConfig().cornerRadius
+                    val radius = settings.cornerRadius
                     ImageHandler.downloadImage(SpotifyOverlay.currentMedia?.imageUrl!!,  if (radius > 1) {
                         radius * 7.5 - if (hudType == HUD_TYPE.BIG_COVER) {
                             radius * 4.5
@@ -206,7 +207,7 @@ class SpotifyOverlayComponent(
             val songName = SpotifyOverlay.currentMedia?.title ?: Component.translatable("spotify-overlay.no_song_playing").string
             val artistName = SpotifyOverlay.currentMedia?.artist ?: ""
 
-            val displayTitle = if (SpotifyOverlay.getConfig().enableMarquee) {
+            val displayTitle = if (settings.enableMarquee) {
                 MarqueeManager.getMarqueeText("title", songName, maxTitleLength)
             } else {
                 if (songName.length > maxTitleLength) {
@@ -231,7 +232,7 @@ class SpotifyOverlayComponent(
             )
 
             if (artistName.isNotEmpty()) {
-                val displayArtist = if (SpotifyOverlay.getConfig().enableMarquee) {
+                val displayArtist = if (settings.enableMarquee) {
                     "by " + MarqueeManager.getMarqueeText("artist", artistName, maxArtistLength - 3) // -3 for "by "
                 } else {
                     val maxLength = maxArtistLength - 3 // -3 for "by "
@@ -293,7 +294,7 @@ class SpotifyOverlayComponent(
                 timelineX + (timelineX2 - timelineX) * progress(),
                 timelineY2,
                 0.0,
-                Color(SpotifyOverlay.getConfig().color).rgb
+                Color(settings.color).rgb
             )
             *///?} else if >= 1.21.7 {
             context.fill(
@@ -301,7 +302,7 @@ class SpotifyOverlayComponent(
                 timelineY.toInt(),
                 (timelineX + (timelineX2 - timelineX) * progress()).toInt(),
                 timelineY2.toInt(),
-                Color(SpotifyOverlay.getConfig().color).rgb
+                Color(settings.color).rgb
             )
             //?}
 
@@ -318,7 +319,7 @@ class SpotifyOverlayComponent(
                 thumbX2,
                 thumbY2,
                 0.0,
-                Color(SpotifyOverlay.getConfig().color).rgb
+                Color(settings.color).rgb
             )
             *///?} else if >= 1.21.7 {
             context.fill(
@@ -326,7 +327,7 @@ class SpotifyOverlayComponent(
                 thumbY1.toInt(),
                 thumbX2.toInt(),
                 thumbY2.toInt(),
-                Color(SpotifyOverlay.getConfig().color).rgb
+                Color(settings.color).rgb
             )
             //?}
   
