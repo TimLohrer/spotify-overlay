@@ -164,7 +164,7 @@ object SpotifyOverlay : ModInitializer {
 						if (!knownSources.contains(mediaInfo.source)) {
 							knownSources.add(mediaInfo.source.trim())
 							Minecraft.getInstance().player?.displayClientMessage(Component.literal("§a§lSpotify§fOverlay §r§b» §rNew media source detected: ${if (mediaInfo.source.contains("Spotify")) "Spotify" else mediaInfo.source}.") , false)
-                             Logger.info("New media source detected: "+mediaInfo.source)
+							Logger.info("New media source detected: "+mediaInfo.source)
 						}
 
 						if (shouldShowMedia(mediaInfo.source)) {
