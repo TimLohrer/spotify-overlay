@@ -77,7 +77,7 @@ object SpotifyOverlay : ModInitializer {
 				InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F7,
                     //? if < 1.21.10 {
-					/*"category.spotify_overlay"
+					/*"key.category.minecraft.category.spotify_overlay"
                     *///?} elif >= 1.21.10 {
                     spotifyCategory
                     //?}
@@ -89,7 +89,7 @@ object SpotifyOverlay : ModInitializer {
 					InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F8,
                     //? if < 1.21.10 {
-                    /*"category.spotify_overlay"
+                    /*"key.category.minecraft.category.spotify_overlay"
                     *///?} elif >= 1.21.10 {
                     spotifyCategory
                     //?}
@@ -101,7 +101,7 @@ object SpotifyOverlay : ModInitializer {
 				InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F9,
                     //? if < 1.21.10 {
-					/*"category.spotify_overlay"
+					/*"key.category.minecraft.category.spotify_overlay"
                     *///?} elif >= 1.21.10 {
                     spotifyCategory
                     //?}
