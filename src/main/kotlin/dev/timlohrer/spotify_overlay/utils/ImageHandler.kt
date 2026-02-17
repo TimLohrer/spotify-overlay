@@ -117,7 +117,7 @@ internal object ImageHandler {
                 return EMPTY
             }
 
-            if (url.startsWith("http")) {
+            if (url.startsWith("http") || url.startsWith("file")) {
                 Logger.info("Downloading $url")
                 CACHE[url]?.let {
                     Logger.info("Found cached image for $url: $it")
