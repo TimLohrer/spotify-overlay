@@ -39,9 +39,12 @@ repositories {
         }
     }
     maven {
-        name = "pauli.fyiReleases"
-        url = uri("https://repo.pauli.fyi/releases")
+        url = uri("https://maven.norisk.gg/repository/maven-releases/")
+        content {
+            includeGroup("net.silkmc")
+        }
     }
+    maven("https://repo.pauli.fyi/releases")
     maven("https://maven.fabricmc.net/")
     maven("https://maven.neoforged.net/releases/")
     maven("https://maven.architectury.dev/")
@@ -51,7 +54,6 @@ repositories {
     maven("https://maven.shedaniel.me/")
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://reposilite.timlohrer.dev/snapshots")
-    maven("https://maven.norisk.gg/repository/maven-releases")
     maven("https://jitpack.io")
     maven("https://maven.bawnorton.com/releases")
 }
