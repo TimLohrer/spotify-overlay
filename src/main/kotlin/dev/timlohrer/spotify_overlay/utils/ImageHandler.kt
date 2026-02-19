@@ -2,12 +2,17 @@ package dev.timlohrer.spotify_overlay.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
 import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.DrawContext
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.client.texture.NativeImage
-import net.minecraft.client.texture.NativeImageBackedTexture
-import net.minecraft.util.Identifier
+import dev.timlohrer.spotify_overlay.SpotifyOverlay
+import com.mojang.blaze3d.platform.NativeImage
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
+//? if <= 1.21.5 {
+/*import net.minecraft.client.renderer.RenderType
+*///?}
+//? if >= 1.21.5 {
+import net.minecraft.client.renderer.RenderPipelines
+//?}
+import net.minecraft.client.renderer.texture.DynamicTexture
 import java.awt.image.BufferedImage
 import java.io.File
 import java.io.FileInputStream
@@ -24,9 +29,9 @@ import javax.imageio.ImageIO
  */
 
 internal object ImageHandler {
-    private val MC = MinecraftClient.getInstance()
-    private val CACHE = HashMap<String, Identifier>()
-    private val CACHE_DIR = File(MC.runDirectory, "spotify-overlay/cache")
+    private val MC = Minecraft.getInstance()
+    private val CACHE = HashMap<String, IdentifierAlias>()
+    private val CACHE_DIR = File(MC.gameDirectory, "spotify-overlay/cache")
     val EMPTY = "textures/spotify/empty.png".toId() // this doesnt even exist, but it is used as a placeholder
 
     init {
@@ -37,7 +42,7 @@ internal object ImageHandler {
             }
         }
     }
-    
+
     fun clearCache() {
         CACHE.clear()
         CACHE_DIR.listFiles()?.forEach { file ->
@@ -47,11 +52,11 @@ internal object ImageHandler {
         }
         Logger.info("Spotify cache cleared.")
     }
-    
+
     fun softClearCache() {
         CACHE.clear()
     }
-    
+
     fun deleteOldestCachedFile() {
         val oldestFile = CACHE_DIR.listFiles()?.minByOrNull { it.lastModified() }
         if (oldestFile != null && oldestFile.delete()) {
@@ -60,18 +65,21 @@ internal object ImageHandler {
     }
 
     fun drawImage(
-        context: DrawContext,
-        musicImage: Identifier,
+        context: GuiGraphics,
+        musicImage: IdentifierAlias,
         x: Int,
         y: Int,
         height: Int,
         width: Int
     ) {
-        val texture = MC.textureManager.getTexture(musicImage)?.glTexture ?: return
-        RenderSystem.setShaderTexture(0, texture)
-
-        context.drawTexture(
-            { id -> RenderLayer.getGuiTextured(id) },
+        if (musicImage == EMPTY) return
+        //? if >= 1.21.4 {
+        context.blit(
+            //? if <= 1.21.5 {
+            /*{ id -> RenderType.guiTextured(id) },
+           *///?} elif > 1.21.5 {
+            RenderPipelines.GUI_TEXTURED,
+            //?}
             musicImage,
             x,
             y,
@@ -82,15 +90,34 @@ internal object ImageHandler {
             width,
             height
         )
+        //?} elif >= 1.21 {
+        /*context.blit(
+            musicImage,
+            x,
+            y,
+            0f,
+            0f,
+            width,
+            height,
+            width,
+            height
+        )
+        *///?}
     }
-    
+
     fun getFileNameFromUrl(url: String): String {
         return UUID.nameUUIDFromBytes(url.toByteArray()).toString() + ".png"
     }
 
-    fun downloadImage(url: String, cornerRadius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true): Identifier {
+    fun downloadImage(url: String, cornerRadius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true): IdentifierAlias {
         try {
-            if (url.startsWith("http")) {
+            val source = SpotifyOverlay.currentMedia?.source
+            if (source != null && source.contains("Apple Music", ignoreCase = true)) {
+                Logger.info("Platform is Apple Music - skipping image render.")
+                return EMPTY
+            }
+
+            if (url.startsWith("http") || url.startsWith("file")) {
                 Logger.info("Downloading $url")
                 CACHE[url]?.let {
                     Logger.info("Found cached image for $url: $it")
@@ -116,7 +143,7 @@ internal object ImageHandler {
                     return loadFromDisk(pngFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
                 }
                 return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
-            } else if (url.startsWith("data:image/png;base64,")) {
+            } else if (url.startsWith("data:image/png;base64,") || url.startsWith("data:image/jpeg;base64,")) {
                 CACHE[url]?.let {
                     Logger.info("Found cached image for BASE64 URL: $it")
                     return it
@@ -128,7 +155,11 @@ internal object ImageHandler {
                     return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
                 }
                 // Handle base64 encoded images
-                val base64Data = url.removePrefix("data:image/png;base64,")
+                val base64Data = when {
+                    url.startsWith("data:image/png;base64,") -> url.removePrefix("data:image/png;base64,")
+                    url.startsWith("data:image/jpeg;base64,") -> url.removePrefix("data:image/jpeg;base64,")
+                    else -> return EMPTY
+                }
                 val imageBytes = java.util.Base64.getDecoder().decode(base64Data)
                 val bufferedImage = ImageIO.read(imageBytes.inputStream()) ?: return EMPTY
                 ImageIO.write(bufferedImage, "png", cachedFile)
@@ -157,7 +188,7 @@ internal object ImageHandler {
         }
     }
 
-    private fun loadFromDisk(file: File, url: String, cornerRadius: Int, topLeft: Boolean, topRight: Boolean, bottomLeft: Boolean, bottomRight: Boolean): Identifier {
+    private fun loadFromDisk(file: File, url: String, cornerRadius: Int, topLeft: Boolean, topRight: Boolean, bottomLeft: Boolean, bottomRight: Boolean): IdentifierAlias {
         Logger.info("Loading cached image: ${file.absolutePath}")
         val bufferedImage = ImageIO.read(file) ?: return EMPTY
         val nativeImage = convertToNativeImage(bufferedImage)
@@ -165,14 +196,18 @@ internal object ImageHandler {
         if (cornerRadius > 0) {
             applyRoundedCorners(nativeImage, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
         }
-        
+
         val id = "spotify_cover_${UUID.randomUUID()}"
-        val dynamicTexture = NativeImageBackedTexture({ id }, nativeImage)
         val textureLocation = id.toId()
-        
+
+        //? if >= 1.21.5 {
+        val dynamicTexture = DynamicTexture({ textureLocation.toString() }, nativeImage)
+        //?} elif >= 1.21 {
+        /*val dynamicTexture = DynamicTexture(nativeImage)
+        *///?}
         Logger.info("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
 
-        MC.textureManager.registerTexture(textureLocation, dynamicTexture)
+        MC.textureManager.register(textureLocation, dynamicTexture)
         CACHE[url] = textureLocation
         return textureLocation
     }
@@ -191,9 +226,12 @@ internal object ImageHandler {
                 val g = (argb shr 8) and 0xFF
                 val b = argb and 0xFF
 
-                // Some NativeImage implementations use ABGR instead of ARGB
                 val abgr = (a shl 24) or (b shl 16) or (g shl 8) or r
-                nativeImage.setColor(x, y, abgr)
+                //? if >= 1.21.4 {
+                nativeImage.setPixelABGR(x, y, abgr)
+                //?} elif >= 1.21 {
+                /*nativeImage.setPixelRGBA(x, y, abgr)
+                *///?}
             }
         }
 
@@ -236,7 +274,6 @@ internal object ImageHandler {
         val width = image.width
         val height = image.height
 
-        // Ensure radius does not exceed half of the smallest dimension
         var effectiveRadius = minOf(radius, width / 2, height / 2)
 
         if (image.width < 250) {
@@ -245,9 +282,8 @@ internal object ImageHandler {
 
         for (x in 0 until width) {
             for (y in 0 until height) {
-                var alpha = image.getOpacity(x, y).toInt() // Get current alpha value
+                var alpha = image.getLuminanceOrAlpha(x, y).toInt()
 
-                // Check if the pixel is in one of the four corner regions
                 val isTopLeftCorner = x < effectiveRadius && y < effectiveRadius
                 val isTopRightCorner = x > width - effectiveRadius && y < effectiveRadius
                 val isBottomLeftCorner = x < effectiveRadius && y > height - effectiveRadius
@@ -256,7 +292,6 @@ internal object ImageHandler {
                 if (isTopLeftCorner && topLeft) {
                     val dx = effectiveRadius - x
                     val dy = effectiveRadius - y
-                    // If distance squared from corner center to pixel is greater than radius squared, it's outside the circle
                     if (dx * dx + dy * dy > effectiveRadius * effectiveRadius) {
                         alpha = 0
                     }
@@ -280,10 +315,13 @@ internal object ImageHandler {
                     }
                 }
 
-                // If alpha was set to 0, update the pixel color with the new alpha
                 if (alpha == 0) {
-                    // Keep the RGB values, but set the alpha component to 0
-                    image.setColor(x, y, image.getColorArgb(x, y) and 0x00FFFFFF)
+
+                    //? if >= 1.21.4 {
+                    image.setPixelABGR(x, y, image.getPixel(x, y) and 0x00FFFFFF)
+                    //?} elif >= 1.21 {
+                    /*image.setPixelRGBA(x, y, image.getPixelRGBA(x, y) and 0x00FFFFFF)
+                    *///?}
                 }
             }
         }

@@ -3,16 +3,21 @@ package dev.timlohrer.spotify_overlay.components
 import dev.timlohrer.spotify_overlay.SpotifyOverlay
 import dev.timlohrer.spotify_overlay.config.HUD_TYPE
 import dev.timlohrer.spotify_overlay.utils.ImageHandler
-import dev.timlohrer.spotify_overlay.utils.fillDouble
+import dev.timlohrer.spotify_overlay.utils.Logger
+//? if <= 1.21.5 {
+/*import dev.timlohrer.spotify_overlay.utils.fillDouble
+import net.minecraft.client.renderer.RenderType
+*///?}
 import dev.timlohrer.spotify_overlay.utils.MarqueeManager
 import io.wispforest.owo.ui.container.FlowLayout
-import io.wispforest.owo.ui.core.OwoUIDrawContext
+//? if < 1.21.11 {
+/*import io.wispforest.owo.ui.core.OwoUIDrawContext
+*///?} else if >= 1.21.11 {
+import io.wispforest.owo.ui.core.OwoUIGraphics as OwoUIDrawContext
+//?}
 import io.wispforest.owo.ui.core.Sizing
-import net.minecraft.client.MinecraftClient
-import net.minecraft.client.render.RenderLayer
-import net.minecraft.text.Text
-import net.minecraft.util.Identifier
-import net.silkmc.silk.core.text.literalText
+import net.minecraft.client.Minecraft
+import net.minecraft.network.chat.Component
 import java.awt.Color
 
 class SpotifyOverlayComponent(
@@ -28,10 +33,11 @@ class SpotifyOverlayComponent(
         ) {
             super.draw(context, mouseX, mouseY, partialTicks, delta)
             
-            val TEXT_RENDERER = MinecraftClient.getInstance().textRenderer
-            val scale = SpotifyOverlay.getConfig().scale + 1.0f // yes, I am readjusting this here since ive built the whole ui in a different scale level :3 Is this clean? Nope! Do I care? Also nope!
-            val hudType = SpotifyOverlay.getConfig().hudType
-            
+            val TEXT_RENDERER = Minecraft.getInstance().font
+            val settings = SpotifyOverlay.getActiveSettings()
+            val scale = settings.scale + 0.5f // yes, I am readjusting this here since ive built the whole ui in a different scale level :3 Is this clean? Nope! Do I care? Also nope!
+            val hudType = settings.hudType
+
             val height = when (hudType) {
                 HUD_TYPE.DEFAULT -> 35
                 HUD_TYPE.MEDIUM_COVER -> 35
@@ -46,7 +52,7 @@ class SpotifyOverlayComponent(
             val x = this.x.toDouble()
             val y = this.y.toDouble()
             
-            if (SpotifyOverlay.getConfig().showBackground) {
+            if (settings.showBackground) {
                 context.fill(
                     x.toInt(),
                     y.toInt(),
@@ -161,7 +167,7 @@ class SpotifyOverlayComponent(
                 val img = if (SpotifyOverlay.lastDownloadedImageUrl == SpotifyOverlay.currentMedia?.imageUrl!!) {
                     SpotifyOverlay.lastDownloadedImage
                 } else {
-                    val radius = SpotifyOverlay.getConfig().cornerRadius
+                    val radius = settings.cornerRadius
                     ImageHandler.downloadImage(SpotifyOverlay.currentMedia?.imageUrl!!,  if (radius > 1) {
                         radius * 7.5 - if (hudType == HUD_TYPE.BIG_COVER) {
                             radius * 4.5
@@ -190,7 +196,7 @@ class SpotifyOverlayComponent(
             
             if (SpotifyOverlay.currentMedia?.isError() == true) {
                 context.drawText(
-                    literalText("Error: ${SpotifyOverlay.currentMedia?.error ?: "Unknown error"}"),
+                    Component.literal("Error: ${SpotifyOverlay.currentMedia?.error ?: "Unknown error"}"),
                     x.toFloat(),
                     y.toFloat(),
                     0.75f,
@@ -198,10 +204,10 @@ class SpotifyOverlayComponent(
                 )
             }
             
-            val songName = SpotifyOverlay.currentMedia?.title ?: Text.translatable("spotify-overlay.no_song_playing").string
+            val songName = SpotifyOverlay.currentMedia?.title ?: Component.translatable("spotify-overlay.no_song_playing").string
             val artistName = SpotifyOverlay.currentMedia?.artist ?: ""
 
-            val displayTitle = if (SpotifyOverlay.getConfig().enableMarquee) {
+            val displayTitle = if (settings.enableMarquee) {
                 MarqueeManager.getMarqueeText("title", songName, maxTitleLength)
             } else {
                 if (songName.length > maxTitleLength) {
@@ -212,7 +218,7 @@ class SpotifyOverlayComponent(
             }
 
             context.drawText(
-                literalText(displayTitle),
+                Component.literal(displayTitle),
                 titleX,
                 titleY,
                 titleScale,
@@ -226,7 +232,7 @@ class SpotifyOverlayComponent(
             )
 
             if (artistName.isNotEmpty()) {
-                val displayArtist = if (SpotifyOverlay.getConfig().enableMarquee) {
+                val displayArtist = if (settings.enableMarquee) {
                     "by " + MarqueeManager.getMarqueeText("artist", artistName, maxArtistLength - 3) // -3 for "by "
                 } else {
                     val maxLength = maxArtistLength - 3 // -3 for "by "
@@ -238,7 +244,7 @@ class SpotifyOverlayComponent(
                 }
 
                 context.drawText(
-                    literalText(displayArtist),
+                    Component.literal(displayArtist),
                     artistX,
                     artistY,
                     artistScale,
@@ -250,73 +256,113 @@ class SpotifyOverlayComponent(
             if (!hasTimeline) return
             
             // Draw timeline background
-            context.fillDouble(
-                RenderLayer.getGui(),
+            //? if <= 1.21.5 {
+            /*context.fillDouble(
+                RenderType.gui(),
                 timelineX,
                 timelineY,
                 timelineX2,
                 timelineY2,
                 0.0,
-                Color.GRAY.rgb // White color
+                Color.GRAY.rgb
             )
+            *///?} else if >= 1.21.7 {
+            context.fill(
+                timelineX.toInt(),
+                timelineY.toInt(),
+                timelineX2.toInt(),
+                timelineY2.toInt(),
+                Color.GRAY.rgb
+            )
+            //?}
             
-            // Draw timeline progress
             val progress = {
-                val sec = SpotifyOverlay.currentMedia?.position
-                val totalTime = SpotifyOverlay.currentMedia?.duration
-                if (sec != null && totalTime != null) {
-                    (sec / totalTime.toDouble())
+                val positionSec = SpotifyOverlay.currentMedia?.position
+                val durationSec = SpotifyOverlay.currentMedia?.duration
+                if (positionSec != null && durationSec != null && durationSec > 0) {
+                    (positionSec / durationSec.toDouble()).coerceIn(0.0, 1.0)
                 } else {
                     0.0
                 }
             }
-            context.fillDouble(
-                RenderLayer.getGui(),
+            
+            //? if <= 1.21.5 {
+             /*context.fillDouble(
+                 RenderType.gui(),
                 timelineX,
                 timelineY,
                 timelineX + (timelineX2 - timelineX) * progress(),
                 timelineY2,
                 0.0,
-                Color(SpotifyOverlay.getConfig().color).rgb
+                Color(settings.color).rgb
             )
+            *///?} else if >= 1.21.7 {
+            context.fill(
+                timelineX.toInt(),
+                timelineY.toInt(),
+                (timelineX + (timelineX2 - timelineX) * progress()).toInt(),
+                timelineY2.toInt(),
+                Color(settings.color).rgb
+            )
+            //?}
 
-            // Draw small progress thumb
-            context.fillDouble(
-                RenderLayer.getGui(),
-                timelineX + ((timelineX2 - timelineX) * progress()) - (thumbSize / 2) + (timelineThickness / 2),
-                timelineY - (thumbSize / 2),
-                timelineX + ((timelineX2 - timelineX) * progress()) + (thumbSize / 2) - (timelineThickness / 2),
-                timelineY2 + (thumbSize / 2),
+            val thumbX1 = timelineX + ((timelineX2 - timelineX) * progress()) - (thumbSize / 2) + (timelineThickness / 2)
+            val thumbY1 = timelineY - (thumbSize / 2)
+            val thumbX2 = timelineX + ((timelineX2 - timelineX) * progress()) + (thumbSize / 2) - (timelineThickness / 2)
+            val thumbY2 = timelineY2 + (thumbSize / 2)
+            
+            //? if <= 1.21.5 {
+             /*context.fillDouble(
+                RenderType.gui(),
+                thumbX1,
+                thumbY1,
+                thumbX2,
+                thumbY2,
                 0.0,
-                Color(SpotifyOverlay.getConfig().color).rgb
+                Color(settings.color).rgb
             )
+            *///?} else if >= 1.21.7 {
+            context.fill(
+                thumbX1.toInt(),
+                thumbY1.toInt(),
+                thumbX2.toInt(),
+                thumbY2.toInt(),
+                Color(settings.color).rgb
+            )
+            //?}
   
-            val totalTime = SpotifyOverlay.currentMedia?.duration ?: 0
-            val position = SpotifyOverlay.currentMedia?.position?.toInt() ?: 0
-            val totalTimeText = if (totalTime > 0) {
-                String.format("%02d:%02d", totalTime / 60, totalTime % 60)
-            } else {
-                "00:00"
+            val durationSec = SpotifyOverlay.currentMedia?.duration ?: 0
+            val positionSec = SpotifyOverlay.currentMedia?.position ?: 0.0
+
+            if (durationSec == 0 && SpotifyOverlay.currentMedia != null) {
+                Logger.warn("Duration is 0 or null for media: ${SpotifyOverlay.currentMedia?.title}")
             }
-            val current = if (position > 0) {
-                String.format("%02d:%02d", position / 60, position % 60)
+
+            val positionSecInt = positionSec.toInt()
+
+            val totalTimeText = if (durationSec > 0) {
+                String.format("%d:%02d", durationSec / 60, durationSec % 60)
             } else {
-                "00:00"
+                "0:00"
+            }
+
+            val currentTimeText = if (positionSecInt > 0) {
+                String.format("%d:%02d", positionSecInt / 60, positionSecInt % 60)
+            } else {
+                "0:00"
             }
             
-            // Draw current time
             context.drawText(
-                literalText(current),
+                Component.literal(currentTimeText),
                 timelineX.toFloat(),
                 (timelineY + boxPadding).toFloat(),
                 0.5f * scale,
                 Color.WHITE.rgb
             )
 
-            // Draw total time
             context.drawText(
-                literalText(totalTimeText),
-                (timelineX2 - (TEXT_RENDERER.getWidth(totalTimeText) * scale) / 2).toFloat(), // Dikka das macht so null Sinn Junge es kracht komplett
+                Component.literal(totalTimeText),
+                (timelineX2 - (TEXT_RENDERER.width(totalTimeText) * 0.5f * scale)).toFloat(),
                 (timelineY + boxPadding).toFloat(),
                 0.5f * scale,
                 Color.WHITE.rgb

@@ -19,9 +19,10 @@
   "text.autoconfig.spotify_overlay.option.enableMarquee.@Tooltip":"Aktiviere oder Deaktiviere das Scrollen bei Langen Texten.",
 
   "spotify_overlay.cache_cleared": "Spotify cache geleert!",
-  "spotify-overlay.no_song_playing": "Es wird kein Lied abgespielt",
+  "spotify-overlay.no_song_playing": "Kein Lied wird abgespielt",
 
-  "key.spotify_overlay.back": "Zurück",
-  "key.spotify_overlay.play_pause": "Abspielen / Pause",
-  "key.spotify_overlay.next": "Überspringen"
+  "key.category.minecraft.category.spotify_overlay": "Spotify Overlay",
+  "key.spotify_overlay.back": "Nächstes Lied",
+  "key.spotify_overlay.next": "Vorheriges Lied",
+  "key.spotify_overlay.play_pause": "Start / Pause"
 }

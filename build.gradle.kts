@@ -11,7 +11,8 @@ plugins {
     val kotlinVersion = "2.2.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
-    id("dev.architectury.loom")
+    //id("dev.architectury.loom")
+    id("fabric-loom") // Leaving this here if you want to swap loom.
     id("me.modmuss50.mod-publish-plugin")
 }
 
@@ -28,6 +29,23 @@ repositories {
         forRepository { maven("https://api.modrinth.com/maven") { name = "Modrinth" } }
         filter { includeGroup("maven.modrinth") }
     }
+    maven {
+        name = "Ladysnake Mods"
+        url = uri("https://maven.ladysnake.org/releases")
+        content {
+            includeGroup("io.github.ladysnake")
+            includeGroup("org.ladysnake")
+            includeGroupByRegex("dev\\.onyxstudios.*")
+        }
+    }
+    maven {
+        url = uri("https://maven.norisk.gg/repository/maven-releases/")
+        content {
+            includeGroup("net.silkmc")
+        }
+    }
+    maven("https://repo.pauli.fyi/releases")
+    maven("https://maven.fabricmc.net/")
     maven("https://maven.neoforged.net/releases/")
     maven("https://maven.architectury.dev/")
     maven("https://modmaven.dev/")
@@ -36,6 +54,8 @@ repositories {
     maven("https://maven.shedaniel.me/")
     maven("https://maven.terraformersmc.com/releases/")
     maven("https://reposilite.timlohrer.dev/snapshots")
+    maven("https://jitpack.io")
+    maven("https://maven.bawnorton.com/releases")
 }
 
 fun bool(str: String) : Boolean {
@@ -245,12 +265,12 @@ val apis = arrayListOf(
     APISource(DepType.IMPL, APIModInfo("fabric-language-kotlin","fabric-language-kotlin"), "net.fabricmc:fabric-language-kotlin", optionalVersionProperty("deps.api.fabric_kotlin")) { src ->
         src.versionRange.isPresent
     },
-    APISource(DepType.IMPL, APIModInfo("silk-core","silk-core"), "net.silkmc:silk-core", optionalVersionProperty("deps.api.silk_core")) { src ->
+    APISource(DepType.IMPL, APIModInfo("silk-core","silk-core"), "net.silkmc:silk-core", optionalVersionProperty("deps.api.silk")) { src ->
         src.versionRange.isPresent
     },
-    APISource(DepType.INCLUDE, APIModInfo("renderer-fabric","renderer-fabric"), "io.github.0x3c50.renderer:renderer-fabric", optionalVersionProperty("deps.api.renderer")) { src ->
+    /*APISource(DepType.INCLUDE, APIModInfo("renderer-fabric","renderer-fabric"), "io.github.0x3c50.renderer:renderer-fabric", optionalVersionProperty("deps.api.renderer")) { src ->
         src.versionRange.isPresent
-    },
+    },*/
     APISource(DepType.IMPL, APIModInfo("owo-lib","owo-lib"), "io.wispforest:owo-lib", optionalVersionProperty("deps.api.owo_lib")) { src ->
         src.versionRange.isPresent
     },
@@ -259,8 +279,14 @@ val apis = arrayListOf(
     },
     APISource(DepType.API, APIModInfo("modmenu","modmenu"), "com.terraformersmc:modmenu", optionalVersionProperty("deps.api.modmenu")) { src ->
         src.versionRange.isPresent
-    }
-)
+    },
+    APISource(DepType.INCLUDE, APIModInfo(), "dev.timlohrer:local_media_listener", Optional.of(VersionRange("1.0.7-SNAPSHOT", ""))) { src ->
+        true
+    },
+    APISource(DepType.API, APIModInfo(), "com.github.kdl-org:kdl4j", Optional.of(VersionRange("1.0.1", ""))) { src ->
+        true
+    },
+    )
 
 // Stores information about the mod itself.
 class ModProperties {
@@ -504,20 +530,12 @@ stonecutter.const("forge",env.isForge)
 stonecutter.const("neoforge",env.isNeo)
 
 loom {
-    silentMojangMappingsLicense()
+    //silentMojangMappingsLicense()
 
     accessWidenerPath = rootProject.file("src/main/resources/spotify_overlay-${env.mcVersion.min}.accesswidener")
 
-    if (env.isForge) forge {
-        for (mixin in modMixins.getMixins(EnvType.FORGE)) {
-            mixinConfigs(
-                mixin
-            )
-        }
-    }
-
     decompilers {
-        get("vineflower").apply { // Adds names to lambdas - useful for mixins
+        get("vineflower").apply {
             options.put("mark-corresponding-synthetics", "1")
         }
     }
@@ -538,11 +556,17 @@ val transitiveInclude: Configuration by configurations.creating {
 
 dependencies {
     minecraft("com.mojang:minecraft:${env.mcVersion.min}")
-    mappings(group = "net.fabricmc", name = "yarn", version = "${env.mcVersion.min}+build.${env.yarnBuildVersion}", classifier = "v2")
+    //mappings(group = "net.fabricmc", name = "yarn", version = "${env.mcVersion.min}+build.${env.yarnBuildVersion}", classifier = "v2")
+    mappings(loom.officialMojangMappings())
 
     if(env.isFabric) {
         modImplementation("net.fabricmc:fabric-loader:${env.fabricLoaderVersion.min}")
         modImplementation("net.fabricmc:fabric-language-kotlin:1.13.4+kotlin.2.2.0")
+        annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.3")
+        modImplementation("io.github.llamalad7:mixinextras-fabric:0.5.3")
+        if(env.atLeast("1.21.10")) {
+            modImplementation("net.fabricmc.fabric-api:fabric-api:${optionalVersionProperty("deps.api.fabric").orElse(VersionRange("", "")).min}")
+        }
     }
     if(env.isForge){
         "forge"("net.minecraftforge:forge:${env.forgeMavenVersion.min}")
@@ -550,9 +574,6 @@ dependencies {
     if(env.isNeo){
         "neoForge"("net.neoforged:neoforge:${env.neoforgeVersion.min}")
     }
-
-    modImplementation("dev.timlohrer:local_media_listener:${property("deps.api.local_media_listener")}")
-    include("dev.timlohrer:local_media_listener:${property("deps.api.local_media_listener")}")
 
     apis.forEach { src->
         if(src.enabled) {
@@ -576,6 +597,7 @@ dependencies {
             }
         }
     }
+
 
     // Process transitiveInclude dependencies
     transitiveInclude.resolvedConfiguration.resolvedArtifacts.forEach {

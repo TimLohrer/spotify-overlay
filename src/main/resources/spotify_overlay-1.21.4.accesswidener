@@ -1,3 +1,3 @@
 accessWidener	v1	named
-accessible field net/minecraft/client/gui/DrawContext vertexConsumers Lnet/minecraft/client/render/VertexConsumerProvider$Immediate;
-
+accessible field net/minecraft/client/gui/GuiGraphics bufferSource Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;
+accessible method com/mojang/blaze3d/platform/NativeImage setPixelABGR (III)V
