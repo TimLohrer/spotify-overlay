@@ -25,8 +25,8 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
 import net.minecraft.network.chat.Component
-
 import org.lwjgl.glfw.GLFW
+import kotlin.math.max
 
 object SpotifyOverlay : ModInitializer {
 	const val MOD_ID = "spotify_overlay"
@@ -34,6 +34,7 @@ object SpotifyOverlay : ModInitializer {
 	private lateinit var backKeybinding: KeyMapping
 	private lateinit var playPauseKeybinding: KeyMapping
 	private lateinit var nextKeybinding: KeyMapping
+	//wer auch immer mojang in den kopf geschissen hat mit diesen kategorien ab 1.21.10 soll sich alt f4n
     //? if >= 1.21.10 {
     private var spotifyCategory = KeyMapping.Category.register(IdentifierAlias.parse("category.spotify_overlay"))
     //?}
@@ -58,23 +59,21 @@ object SpotifyOverlay : ModInitializer {
 	override fun onInitialize() {
 		AutoConfig.register(SpotifyOverlayConfig::class.java, ::GsonConfigSerializer)
 
-		ServerPlayConnectionEvents.JOIN.register { handler, sender, client ->
+		ServerPlayConnectionEvents.JOIN.register { _, _, _ ->
 			if (!getActiveSettings().renderOverlay) return@register
 			initializeListener()
 			val settings = getActiveSettings()
-			Hud.add("spotify_overlay".toId(), {
-				SpotifyOverlayComponent().apply {
-					positioning(Positioning.absolute(settings.positionX, settings.positionY))
-				}
-			})
-		}
-
-        //wer auch immer mojang in den kopf geschissen hat mit diesen kategorien ab 1.21.10 soll sich alt f4n
-
+			Hud.add("spotify_overlay".toId()) {
+                SpotifyOverlayComponent().apply {
+                    positioning(Positioning.absolute(settings.positionX, settings.positionY))
+                }
+            }
+        }
+		
         backKeybinding = KeyBindingHelper.registerKeyBinding(
 			KeyMapping(
 					"key.spotify_overlay.back",
-				InputConstants.Type.KEYSYM,
+					InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F7,
                     //? if < 1.21.10 {
 					/*"key.category.minecraft.category.spotify_overlay"
@@ -97,8 +96,8 @@ object SpotifyOverlay : ModInitializer {
 		)
 		nextKeybinding = KeyBindingHelper.registerKeyBinding(
 			KeyMapping(
-					"key.spotify_overlay.next",
-				InputConstants.Type.KEYSYM,
+					"key.spotify_overlay.next", 
+					InputConstants.Type.KEYSYM,
 					GLFW.GLFW_KEY_F9,
                     //? if < 1.21.10 {
 					/*"key.category.minecraft.category.spotify_overlay"
@@ -108,16 +107,24 @@ object SpotifyOverlay : ModInitializer {
 				)
 		)
 
-		ClientTickEvents.END_CLIENT_TICK.register { client ->
+		// ignores keybinds for 0.5s after a keybind press
+		var tickIndex = 0
+		ClientTickEvents.END_CLIENT_TICK.register { _ ->
 			if (!getActiveSettings().renderOverlay || !LocalMediaListener.isRunning || currentMedia == null) return@register
-			while (backKeybinding.isDown()) {
-				LocalMediaListener.back(currentMedia!!.source)	
+			tickIndex = max(0, tickIndex - 1)
+			if (tickIndex > 0) return@register
+			
+			if (backKeybinding.isDown) {
+				LocalMediaListener.back(currentMedia!!.source)
+				tickIndex = 10
 			}
-			while (playPauseKeybinding.isDown()) {
+			if (playPauseKeybinding.isDown) {
 				LocalMediaListener.playPause(currentMedia!!.source)
+				tickIndex = 10
 			}
-			while (nextKeybinding.isDown()) {
+			if (nextKeybinding.isDown) {
 				LocalMediaListener.next(currentMedia!!.source)
+				tickIndex = 10
 			}
 		}
 		
