@@ -21,7 +21,7 @@ class SpotifyOverlayConfig : ConfigData {
     @ConfigEntry.ColorPicker(allowAlpha = false)
     var color = 0x00BB00
     @ConfigEntry.Gui.Tooltip
-    var sourceFilter: String = "Spotify"
+    var sourceFilter: String = "Spotify,AppleMusic,Amazon,Youtube,Cider,SoundCloud"
     @ConfigEntry.Gui.Tooltip
     var enableMarquee: Boolean = true
 }
