@@ -1,6 +1,5 @@
 package dev.timlohrer.spotify_overlay.utils
 
-import com.mojang.blaze3d.systems.RenderSystem
 import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
 import dev.timlohrer.spotify_overlay.SpotifyOverlay
 import com.mojang.blaze3d.platform.NativeImage
@@ -13,20 +12,14 @@ import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.RenderPipelines
 //?}
 import net.minecraft.client.renderer.texture.DynamicTexture
+import org.endlesssource.mediainterface.api.ArtworkDecoder
 import java.awt.image.BufferedImage
 import java.io.File
-import java.io.FileInputStream
-import java.net.URI
-import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.HashMap
 import java.util.UUID
 import javax.imageio.ImageIO
-
-/**
- * COPIED AND MODIFIED FROM https://github.com/LeonimusTTV/SpotiCraft/blob/master/src/main/java/com/leonimust/spoticraft/common/client/ui/ImageHandler.java
- * <333
- */
+import kotlin.math.min
 
 internal object ImageHandler {
     private val MC = Minecraft.getInstance()
@@ -104,86 +97,37 @@ internal object ImageHandler {
         )
         *///?}
     }
-
-    fun getFileNameFromUrl(url: String): String {
-        return UUID.nameUUIDFromBytes(url.toByteArray()).toString() + ".png"
+    
+    fun getCacheKeyFromUrl(url: String): String {
+        return UUID.nameUUIDFromBytes(url.substring(0, min(50, url.length)).toByteArray()).toString()
     }
 
     fun downloadImage(url: String, cornerRadius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true): IdentifierAlias {
         try {
             val source = SpotifyOverlay.currentMedia?.source
-            if (source != null && source.contains("Apple Music", ignoreCase = true)) {
-                Logger.info("Platform is Apple Music - skipping image render.")
-                return EMPTY
+            
+            val cacheKey = getCacheKeyFromUrl(url)
+            CACHE[cacheKey]?.let {
+                return it
             }
-
-            if (url.startsWith("http") || url.startsWith("file")) {
-                Logger.info("Downloading $url")
-                CACHE[url]?.let {
-                    Logger.info("Found cached image for $url: $it")
-                    return it
-                }
-                val fileName = getFileNameFromUrl(url)
-                val cachedFile = File(CACHE_DIR, fileName)
-                if (cachedFile.exists()) {
-                    Logger.info("Image found in cache: ${cachedFile.absolutePath}")
-                    return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
-                }
-                val imageUrl = URI(url).toURL()
-                imageUrl.openStream().use { input ->
-                    Files.copy(input, cachedFile.toPath())
-                }
-                if (CACHE_DIR.listFiles().size > 10) {
-                    deleteOldestCachedFile()
-                }
-                Logger.info("Downloaded image to $url")
-                if (isWebP(cachedFile)) {
-                    Logger.info("Converting to PNG...")
-                    val pngFile = convertWebPToPng(cachedFile)
-                    return loadFromDisk(pngFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
-                }
+            
+            val cachedFile = File(CACHE_DIR, "${cacheKey}.png")
+            if (cachedFile.exists()) {
+                Logger.info("Image found in cache: ${cachedFile.absolutePath}")
                 return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
-            } else if (url.startsWith("data:image/png;base64,") || url.startsWith("data:image/jpeg;base64,")) {
-                CACHE[url]?.let {
-                    Logger.info("Found cached image for BASE64 URL: $it")
-                    return it
-                }
-                val fileName = getFileNameFromUrl(url)
-                val cachedFile = File(CACHE_DIR, fileName)
-                if (cachedFile.exists()) {
-                    Logger.info("Image found in cache: ${cachedFile.absolutePath}")
-                    return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
-                }
-                // Handle base64 encoded images
-                val base64Data = when {
-                    url.startsWith("data:image/png;base64,") -> url.removePrefix("data:image/png;base64,")
-                    url.startsWith("data:image/jpeg;base64,") -> url.removePrefix("data:image/jpeg;base64,")
-                    else -> return EMPTY
-                }
-                val imageBytes = java.util.Base64.getDecoder().decode(base64Data)
-                val bufferedImage = ImageIO.read(imageBytes.inputStream()) ?: return EMPTY
-                ImageIO.write(bufferedImage, "png", cachedFile)
-
-                if (CACHE_DIR.listFiles().size > 10) {
-                    deleteOldestCachedFile()
-                }
-
-                if (bufferedImage.width != bufferedImage.height) {
-                    val size = minOf(bufferedImage.width, bufferedImage.height)
-                    val resizedImage = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
-                    val graphics = resizedImage.createGraphics()
-                    graphics.drawImage(bufferedImage, 0, 0, size, size, null)
-                    graphics.dispose()
-                    ImageIO.write(resizedImage, "png", cachedFile)
-                }
-
-                return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
-            } else {
-                Logger.warn("Unsupported URL format: $url")
-                return EMPTY
             }
+            
+            val bytes = ArtworkDecoder.decodeBytes(source) ?: return EMPTY
+            if (bytes.isEmpty) return EMPTY
+            Files.write(cachedFile.toPath(), bytes.orElseThrow())
+
+            if (CACHE_DIR.listFiles().size > 10) {
+                deleteOldestCachedFile()
+            }
+            
+            return loadFromDisk(File(CACHE_DIR, "${cacheKey}.png"), url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
         } catch (e: Exception) {
-            Logger.error("Failed to load image from $url: ${e.message}", e)
+            Logger.error("Failed to load image: ${e.message}", e)
             return EMPTY
         }
     }
@@ -238,38 +182,6 @@ internal object ImageHandler {
         return nativeImage
     }
 
-    private fun isWebP(file: File): Boolean {
-        return try {
-            FileInputStream(file).use { input ->
-                val magicBytes = input.readNBytes(12)
-                val header = String(magicBytes, StandardCharsets.US_ASCII)
-                "WEBP" in header
-            }
-        } catch (e: Exception) {
-            Logger.error("Error checking WebP format: ${e.message}", e)
-            false
-        }
-    }
-
-    private fun convertWebPToPng(webpFile: File): File {
-        val pngFileName = webpFile.name.replace(".webp", ".png")
-        val pngFile = File(webpFile.parentFile, pngFileName)
-
-        val process = ProcessBuilder("dwebp", webpFile.absolutePath, "-o", pngFile.absolutePath)
-            .redirectErrorStream(true)
-            .start()
-
-        val exitCode = process.waitFor()
-        val errorMsg = process.inputStream.readAllBytes().toString(StandardCharsets.UTF_8)
-        if (exitCode != 0) {
-            Logger.error("Failed to convert WebP to PNG: $errorMsg")
-            throw RuntimeException("Failed to convert WebP image to PNG. Exit code: $exitCode")
-        }
-
-        Logger.info("Converted WebP to PNG: ${pngFile.absolutePath}")
-        return pngFile
-    }
-
     private fun applyRoundedCorners(image: NativeImage, radius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true) {
         val width = image.width
         val height = image.height
@@ -316,7 +228,6 @@ internal object ImageHandler {
                 }
 
                 if (alpha == 0) {
-
                     //? if >= 1.21.4 {
                     image.setPixelABGR(x, y, image.getPixel(x, y) and 0x00FFFFFF)
                     //?} elif >= 1.21 {
