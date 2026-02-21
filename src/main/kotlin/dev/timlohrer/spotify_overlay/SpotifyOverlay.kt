@@ -211,7 +211,18 @@ object SpotifyOverlay : ModInitializer {
 	fun shouldShowMedia(source: String): Boolean {
 		val sourceFilter = getActiveSettings().sourceFilter
 		if (sourceFilter.isEmpty()) return true
-		val splitFilter = sourceFilter.split(",").map { it.trim() }
+		var splitFilter = sourceFilter.split(",").map { it.trim() }
+		splitFilter.forEach {
+			if (it.equals("AppleMusic", ignoreCase = true)) {
+				// remove element
+				splitFilter = splitFilter.filter { s -> s !== it }
+				val osName = System.getProperty("os.name").lowercase()
+				when {
+					"mac" in osName || "darwin" in osName -> splitFilter.plus("Music")
+					else -> splitFilter.plus("Apple")
+				}
+			}
+		}
 		return splitFilter.any { source.contains(it, ignoreCase = true) }
 	}
 	
