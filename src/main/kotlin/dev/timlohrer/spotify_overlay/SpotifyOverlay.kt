@@ -62,13 +62,12 @@ object SpotifyOverlay : ModInitializer {
 		ServerPlayConnectionEvents.JOIN.register { _, _, _ ->
 			if (!getActiveSettings().renderOverlay) return@register
 			initializeListener()
-			val settings = getActiveSettings()
-			Hud.add("spotify_overlay".toId()) {
-                SpotifyOverlayComponent().apply {
-                    positioning(Positioning.absolute(settings.positionX, settings.positionY))
-                }
-            }
         }
+
+		ServerPlayConnectionEvents.DISCONNECT.register { _, _ ->
+			if (!getActiveSettings().renderOverlay) return@register
+			uninitializeListener()
+		}
 		
         backKeybinding = KeyBindingHelper.registerKeyBinding(
 			KeyMapping(
