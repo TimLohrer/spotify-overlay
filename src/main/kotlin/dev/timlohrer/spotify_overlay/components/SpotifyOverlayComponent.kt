@@ -58,7 +58,7 @@ class SpotifyOverlayComponent(
                     y.toInt(),
                     (x + width).toInt(),
                     (y + height).toInt(),
-                    Color(0, 0, 0, 150).rgb //Semi-transparent black background
+                    Color(0, 0, 0, 100).rgb //Semi-transparent black background
                 )
             }
             
@@ -168,16 +168,17 @@ class SpotifyOverlayComponent(
                     SpotifyOverlay.lastDownloadedImage
                 } else {
                     val radius = settings.cornerRadius
-                    ImageHandler.downloadImage(SpotifyOverlay.currentMedia?.imageUrl!!,  if (radius > 1) {
+                    ImageHandler.loadImage(if (radius > 1) {
                         radius * 7.5 - if (hudType == HUD_TYPE.BIG_COVER) {
                             radius * 4.5
                         } else { 0 }.toDouble()
                     } else {
                         0
                     }.toInt(),
-                        topRight = hudType != HUD_TYPE.MEDIUM_COVER,
-                        bottomLeft = hudType != HUD_TYPE.BIG_COVER,
-                        bottomRight = hudType == HUD_TYPE.DEFAULT)
+                    topLeft = true,
+                    topRight = hudType != HUD_TYPE.MEDIUM_COVER,
+                    bottomLeft = hudType != HUD_TYPE.BIG_COVER,
+                    bottomRight = hudType == HUD_TYPE.DEFAULT)
                 }
                 if (img != ImageHandler.EMPTY) {
                     SpotifyOverlay.lastDownloadedImage = img
@@ -216,6 +217,7 @@ class SpotifyOverlayComponent(
                     songName
                 }
             }
+            
 
             context.drawText(
                 Component.literal(displayTitle),
@@ -343,13 +345,13 @@ class SpotifyOverlayComponent(
             val totalTimeText = if (durationSec > 0) {
                 String.format("%d:%02d", durationSec / 60, durationSec % 60)
             } else {
-                "0:00"
+                "00:00"
             }
 
             val currentTimeText = if (positionSecInt > 0) {
                 String.format("%d:%02d", positionSecInt / 60, positionSecInt % 60)
             } else {
-                "0:00"
+                "00:00"
             }
             
             context.drawText(
