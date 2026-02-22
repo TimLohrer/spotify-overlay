@@ -151,7 +151,6 @@ object SpotifyOverlay : ModInitializer {
 						_cornerRadius = settings.cornerRadius
 						_hudType = settings.hudType
 						// Update corner radius in the overlay component
-						ImageHandler.softClearCache()
 						lastDownloadedImageUrl = null
 						lastDownloadedImage = null
 					}
@@ -184,14 +183,13 @@ object SpotifyOverlay : ModInitializer {
 			return
 		}
 		
-		if (Minecraft.getInstance().player?.level() == null) return
 		val settings = getActiveSettings()
-		Hud.add("spotify_overlay".toId(), {
-			SpotifyOverlayComponent().apply {
-				positioning(Positioning.absolute(settings.positionX, settings.positionY))
-			}
-		})
-	}
+		Hud.add("spotify_overlay".toId()) {
+            SpotifyOverlayComponent().apply {
+                positioning(Positioning.absolute(settings.positionX, settings.positionY))
+            }
+        }
+    }
 	
 	fun uninitializeListener() {
 		try {
@@ -204,7 +202,6 @@ object SpotifyOverlay : ModInitializer {
 		}
 		if (Minecraft.getInstance().player?.level() == null) return
 		Hud.remove("spotify_overlay".toId())
-		clearCache()
 		Logger.info("SpotifyOverlay listener shut down")
 	}
 
@@ -224,10 +221,5 @@ object SpotifyOverlay : ModInitializer {
 			}
 		}
 		return splitFilter.any { source.contains(it, ignoreCase = true) }
-	}
-	
-	fun clearCache() {
-		ImageHandler.clearCache()
-		Minecraft.getInstance().player?.displayClientMessage(Component.translatable("spotify_overlay.cache_cleared"), true)
 	}
 }

@@ -192,10 +192,6 @@ class NrcImplSupport {
         SpotifyOverlay.lastDownloadedImage = null
     }
 
-    fun clearCache() {
-        SpotifyOverlay.clearCache()
-    }
-
     fun initializeListener() {
         SpotifyOverlay.initializeListener()
     }

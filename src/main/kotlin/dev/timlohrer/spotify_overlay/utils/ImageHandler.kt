@@ -1,61 +1,27 @@
 package dev.timlohrer.spotify_overlay.utils
 
-import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
-import dev.timlohrer.spotify_overlay.SpotifyOverlay
-import com.mojang.blaze3d.platform.NativeImage
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiGraphics
 //? if <= 1.21.5 {
 /*import net.minecraft.client.renderer.RenderType
 *///?}
 //? if >= 1.21.5 {
 import net.minecraft.client.renderer.RenderPipelines
 //?}
+import com.mojang.blaze3d.platform.NativeImage
+import dev.timlohrer.spotify_overlay.SpotifyOverlay
+import dev.timlohrer.spotify_overlay.SpotifyOverlay.toId
+import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.renderer.texture.DynamicTexture
 import org.endlesssource.mediainterface.api.ArtworkDecoder
 import java.awt.image.BufferedImage
-import java.io.File
-import java.nio.file.Files
-import java.util.HashMap
-import java.util.UUID
+import java.io.ByteArrayInputStream
+import java.util.*
 import javax.imageio.ImageIO
-import kotlin.math.min
+
 
 internal object ImageHandler {
     private val MC = Minecraft.getInstance()
-    private val CACHE = HashMap<String, IdentifierAlias>()
-    private val CACHE_DIR = File(MC.gameDirectory, "spotify-overlay/cache")
-    val EMPTY = "textures/spotify/empty.png".toId() // this doesnt even exist, but it is used as a placeholder
-
-    init {
-        if (!CACHE_DIR.exists()) {
-            val result = CACHE_DIR.mkdirs()
-            if (!result) {
-                throw RuntimeException("Unable to create directory $CACHE_DIR")
-            }
-        }
-    }
-
-    fun clearCache() {
-        CACHE.clear()
-        CACHE_DIR.listFiles()?.forEach { file ->
-            if (file.isFile) {
-                file.delete()
-            }
-        }
-        Logger.info("Spotify cache cleared.")
-    }
-
-    fun softClearCache() {
-        CACHE.clear()
-    }
-
-    fun deleteOldestCachedFile() {
-        val oldestFile = CACHE_DIR.listFiles()?.minByOrNull { it.lastModified() }
-        if (oldestFile != null && oldestFile.delete()) {
-            Logger.info("Deleted oldest cached file: ${oldestFile.name}")
-        }
-    }
+    val EMPTY = "textures/spotify/empty.png".toId() // this doesn't even exist, but it is used as a placeholder
 
     fun drawImage(
         context: GuiGraphics,
@@ -97,45 +63,16 @@ internal object ImageHandler {
         )
         *///?}
     }
-    
-    fun getCacheKeyFromUrl(url: String): String {
-        return UUID.nameUUIDFromBytes(url.substring(0, min(50, url.length)).toByteArray()).toString()
-    }
 
-    fun downloadImage(url: String, cornerRadius: Int, topLeft: Boolean = true, topRight: Boolean = true, bottomLeft: Boolean = true, bottomRight: Boolean = true): IdentifierAlias {
-        try {
-            val source = SpotifyOverlay.currentMedia?.source
-            
-            val cacheKey = getCacheKeyFromUrl(url)
-            CACHE[cacheKey]?.let {
-                return it
-            }
-            
-            val cachedFile = File(CACHE_DIR, "${cacheKey}.png")
-            if (cachedFile.exists()) {
-                Logger.info("Image found in cache: ${cachedFile.absolutePath}")
-                return loadFromDisk(cachedFile, url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
-            }
-            
-            val bytes = ArtworkDecoder.decodeBytes(source) ?: return EMPTY
-            if (bytes.isEmpty) return EMPTY
-            Files.write(cachedFile.toPath(), bytes.orElseThrow())
+    fun loadImage(cornerRadius: Int, topLeft: Boolean, topRight: Boolean, bottomLeft: Boolean, bottomRight: Boolean): IdentifierAlias {
+        val source = SpotifyOverlay.currentMedia?.imageUrl ?: return EMPTY
 
-            if (CACHE_DIR.listFiles().size > 10) {
-                deleteOldestCachedFile()
-            }
-            
-            return loadFromDisk(File(CACHE_DIR, "${cacheKey}.png"), url, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
-        } catch (e: Exception) {
-            Logger.error("Failed to load image: ${e.message}", e)
-            return EMPTY
-        }
-    }
-
-    private fun loadFromDisk(file: File, url: String, cornerRadius: Int, topLeft: Boolean, topRight: Boolean, bottomLeft: Boolean, bottomRight: Boolean): IdentifierAlias {
-        Logger.info("Loading cached image: ${file.absolutePath}")
-        val bufferedImage = ImageIO.read(file) ?: return EMPTY
-        val nativeImage = convertToNativeImage(bufferedImage)
+        val bytes = ArtworkDecoder.decodeBytes(source)
+        if (bytes.isEmpty) return EMPTY
+        
+        val bis = ByteArrayInputStream(bytes.orElseThrow())
+        val bufferedImage = ImageIO.read(bis) ?: return EMPTY
+        var nativeImage = convertToNativeImage(bufferedImage)
 
         if (cornerRadius > 0) {
             applyRoundedCorners(nativeImage, cornerRadius, topLeft, topRight, bottomLeft, bottomRight)
@@ -149,10 +86,9 @@ internal object ImageHandler {
         //?} elif >= 1.21 {
         /*val dynamicTexture = DynamicTexture(nativeImage)
         *///?}
-        Logger.info("Registering texture: $textureLocation for URL: ${url.split("base64,").first()}")
+        Logger.info("Registering texture: $textureLocation")
 
         MC.textureManager.register(textureLocation, dynamicTexture)
-        CACHE[url] = textureLocation
         return textureLocation
     }
 
