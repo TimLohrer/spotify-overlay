@@ -7,7 +7,7 @@
   "text.autoconfig.spotify_overlay.option.showBackground": "Show Background",
   "text.autoconfig.spotify_overlay.option.color": "Overlay Color",
   "text.autoconfig.spotify_overlay.option.sourceFilter": "Source Filter",
-  "text.autoconfig.spotify_overlay.option.enableMarquee":"Enable Marquee",
+  "text.autoconfig.spotify_overlay.option.enableMarquee":"Enable Scrolling Text",
 
   "text.autoconfig.spotify_overlay.option.renderOverlay.@Tooltip": "Toggle the overlay rendering on/off.",
   "text.autoconfig.spotify_overlay.option.scale.@Tooltip": "Adjust the scale of the overlay.",
