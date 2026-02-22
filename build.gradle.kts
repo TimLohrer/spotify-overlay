@@ -280,13 +280,13 @@ val apis = arrayListOf(
     APISource(DepType.API, APIModInfo("modmenu","modmenu"), "com.terraformersmc:modmenu", optionalVersionProperty("deps.api.modmenu")) { src ->
         src.versionRange.isPresent
     },
-    APISource(DepType.INCLUDE, APIModInfo(), "dev.timlohrer:local_media_listener", Optional.of(VersionRange("1.0.10-SNAPSHOT", ""))) { src ->
+    APISource(DepType.INCLUDE, APIModInfo(), "dev.timlohrer:local_media_listener", Optional.of(VersionRange("1.0.12-SNAPSHOT", ""))) { src ->
         true
     },
     APISource(DepType.API, APIModInfo(), "com.github.kdl-org:kdl4j", Optional.of(VersionRange("1.0.1", ""))) { src ->
         true
-    },
-    )
+    }
+)
 
 // Stores information about the mod itself.
 class ModProperties {
@@ -661,7 +661,7 @@ tasks.processResources {
     filesMatching("fabric.mod.json") { expand(map) }
     filesMatching("META-INF/mods.toml") { expand(map) }
     filesMatching("META-INF/neoforge.mods.toml") { expand(map) }
-    modMixins.getMixins(env.type).forEach { str->
+    modMixins.getMixins(env.type).forEach { str ->
         filesMatching(str) { expand(map) }
     }
 }
